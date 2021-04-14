@@ -15,7 +15,7 @@ import { ProfileStatsPage, ProfileProjectsPage, ProfileAuditsPage } from './page
 import Logo from './images/logo.png'
 import Profile from './images/profile.png'
 
-const IsMainnet = window.location.hostname === 'contracts.one'
+const IsMainnet = false // TODO window.location.hostname === 'contracts.one'
 const TestNearConfig = {
   accountSuffix: 'testnet',
   networkId: 'testnet',
