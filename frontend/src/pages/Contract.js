@@ -21,21 +21,30 @@ function ContractPage (props) {
   const { data: project } = useSWR(['project_name', contract ? contract.project_name : ''], fetchProject, { errorRetryInterval: 500 })
 
   const certificates = contract && contract.certificates.length ? contract.certificates.map((data, index) => {
-    console.log(data)
+    const approvedMsg = data.approved ? 'approved' : 'refused'
     return (
       <div key={index} className='container g-0'>
         <div>
-          <Link to={`/profileAudits/${data.author}`}>{data.author}</Link>
+          {approvedMsg} by <Link to={`/profileAudits/${data.author}`}>{data.author}</Link>
         </div>
       </div>
     )
   }) : <div>No certificates found</div>
 
-  const standards = contract && contract.certificates.length ? contract.certificates.map((data, index) => {
+  const standardsMap = new Map()
+  contract && contract.certificates.forEach(certificate => {
+    certificate.standards_confirmed.forEach(standard => {
+      standardsMap.set(standard, (standardsMap.get(standard) || 0) + 1)
+    })
+  })
+
+  const standards = standardsMap.size ? Array.from(standardsMap).map((data, index) => {
     return (
-      <div key={index} className='container g-0'>
-        <div>
-          {data.standards_confirmed}
+      <div key={index} className='container g-0 pt-2'>
+        <div className='d-flex flex-row'>
+          <div className='px-2 bg-success badge'>
+            {data[0]}<small className='ps-2'>x{data[1]}</small>
+          </div>
         </div>
       </div>
     )

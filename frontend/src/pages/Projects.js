@@ -13,17 +13,14 @@ function ProjectsPage (props) {
     page = 0
   }
   const from = Math.max(0, page - 1) * FetchLimit
-  console.log(page)
 
   const fetchProjects = async (...args) => {
     return await props._near.contract.get_all_projects({ from: args[1], to: args[1] + FetchLimit })
   }
 
   const { data: projects } = useSWR(['all_projects', from], fetchProjects, { errorRetryInterval: 500 })
-  console.log(projects)
 
   const projectList = projects ? projects.map((data, index) => {
-    console.log(data)
     const projectInfoDestination = '/projectInfo/' + data[0]
     const versionDestination = data[1] && '/contract/' + data[1][1]
     return (
