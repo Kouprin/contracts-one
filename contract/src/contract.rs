@@ -16,6 +16,8 @@ pub struct Contract {
 
     pub publisher: UserId,
 
+    pub standards_declared: UnorderedSet<Standard>,
+
     pub auditors: UnorderedMap<UserId, CertificateId>,
     pub certificates: UnorderedMap<CertificateId, Certificate>,
 }
@@ -35,6 +37,8 @@ pub struct ContractView {
 
     pub publisher: UserId,
 
+    pub standards_declared: Vec<Standard>,
+
     pub certificates: Vec<CertificateView>,
 }
 
@@ -48,6 +52,7 @@ impl From<&Contract> for ContractView {
             published_time: c.published_time.into(),
             source_code_size: c.source_code_archived.len() as u64,
             publisher: c.publisher.clone(),
+            standards_declared: c.standards_declared.to_vec(),
             certificates: c.certificates.iter().map(|(_, v)| (&v).into()).collect(),
         }
     }
@@ -68,6 +73,22 @@ impl Global {
             .get(&version)
             .unwrap())
             .into()
+    }
+
+    pub fn get_contract_safety_level(&self, contract_hash: Base58CryptoHash) -> SafetyReport {
+        let (project_id, version) = self
+            .contract_hash_to_contract_id
+            .get(&contract_hash.into())
+            .unwrap();
+        self.calculate_safety_level(
+            &self
+                .projects
+                .get(&project_id)
+                .unwrap()
+                .contracts
+                .get(&version)
+                .unwrap(),
+        )
     }
 
     pub fn get_contract_source_code(&self, contract_hash: Base58CryptoHash) -> String {
@@ -92,6 +113,7 @@ impl Global {
         contract_hash: Base58CryptoHash,
         version: String,
         source_code_archived: String,
+        standards_declared: Vec<Standard>,
     ) -> bool {
         let version: Version = (&version).into();
         let mut project = self.extract_project_by_name_or_panic(&project_name);
@@ -100,10 +122,16 @@ impl Global {
         let mut prefix = Vec::with_capacity(33);
         prefix.push(b'u');
         prefix.extend(&ContractHash::from(contract_hash));
+        let mut standards_declared_set = UnorderedSet::new(prefix);
+        standards_declared_set.extend(standards_declared.into_iter());
 
         let mut prefix2 = Vec::with_capacity(33);
         prefix2.push(b'v');
         prefix2.extend(&ContractHash::from(contract_hash));
+
+        let mut prefix3 = Vec::with_capacity(33);
+        prefix3.push(b'w');
+        prefix3.extend(&ContractHash::from(contract_hash));
 
         let contract = Contract {
             hash: contract_hash.into(),
@@ -113,8 +141,9 @@ impl Global {
             published_time: env::block_timestamp(),
             source_code_archived,
             publisher: env::predecessor_account_id(),
-            auditors: UnorderedMap::new(prefix),
-            certificates: UnorderedMap::new(prefix2),
+            standards_declared: standards_declared_set,
+            auditors: UnorderedMap::new(prefix2),
+            certificates: UnorderedMap::new(prefix3),
         };
 
         assert!(project.contracts.insert(&version, &contract).is_none());
@@ -125,5 +154,29 @@ impl Global {
         self.save_project_by_name_or_panic(&project_name, &project);
 
         true
+    }
+}
+
+impl Global {
+    pub(crate) fn calculate_safety_level(&self, contract: &Contract) -> SafetyReport {
+        if contract.certificates.len() == 0 {
+            return SafetyReport::low();
+        }
+        let mut yes = 0;
+        let mut no = 0;
+        for (_, certificate) in contract.certificates.iter() {
+            if certificate.approved {
+                yes += 1;
+            } else {
+                no += 1;
+            }
+        }
+        if yes == 0 {
+            return SafetyReport::low();
+        }
+        if no == 0 {
+            return SafetyReport::high();
+        }
+        SafetyReport::moderate()
     }
 }

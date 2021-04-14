@@ -82,7 +82,7 @@ function ProfilePageCommon (props, tab) {
 
   const { data: user } = useSWR(['user_id', profileId], fetchUser, { errorRetryInterval: 500 })
   const { data: audits } = useSWR(['user_audits', profileId], fetchUserAudits, { errorRetryInterval: 500 })
-  const { data: contract } = useSWR(['contract_hash', auditHash], fetchContract, { errorRetryInterval: 500 })
+  const { data: contract } = useSWR(['contract', auditHash], fetchContract, { errorRetryInterval: 500 })
 
   const userProjects = user && user.projects_owned.map((data, index) => {
     return (

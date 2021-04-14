@@ -13,7 +13,7 @@ function ProjectInfoPage (props) {
     return mapProject(await props._near.contract.get_project({ project_name: args[1] }))
   }
 
-  const { data: project } = useSWR(['project_name', projectName], fetchProject, { errorRetryInterval: 500 })
+  const { data: project } = useSWR(['project', projectName], fetchProject, { errorRetryInterval: 500 })
 
   const owners = project && project.owners.map((data, index) => {
     return (

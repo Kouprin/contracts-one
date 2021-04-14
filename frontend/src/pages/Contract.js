@@ -17,8 +17,13 @@ function ContractPage (props) {
     return args[1] === '' ? mapContract(null) : mapContract(await props._near.contract.get_contract({ contract_hash: args[1] }))
   }
 
-  const { data: contract } = useSWR(['contract_hash', contractHash], fetchContract, { errorRetryInterval: 500 })
-  const { data: project } = useSWR(['project_name', contract ? contract.project_name : ''], fetchProject, { errorRetryInterval: 500 })
+  const fetchContractSafety = async (...args) => {
+    return args[1] === '' ? null : await props._near.contract.get_contract_safety_level({ contract_hash: args[1] })
+  }
+
+  const { data: contract } = useSWR(['contract', contractHash], fetchContract, { errorRetryInterval: 500 })
+  const { data: project } = useSWR(['project', contract ? contract.project_name : ''], fetchProject, { errorRetryInterval: 500 })
+  const { data: contractSafety } = useSWR(['contract_safety', contractHash], fetchContractSafety, { errorRetryInterval: 500 })
 
   const certificates = contract && contract.certificates.length ? contract.certificates.map((data, index) => {
     const approvedMsg = data.approved ? 'approved' : 'refused'
@@ -32,6 +37,9 @@ function ContractPage (props) {
   }) : <div>No certificates found</div>
 
   const standardsMap = new Map()
+  contract && contract.standards_declared.forEach(standard => {
+    standardsMap.set(standard, 0)
+  })
   contract && contract.certificates.forEach(certificate => {
     certificate.standards_confirmed.forEach(standard => {
       standardsMap.set(standard, (standardsMap.get(standard) || 0) + 1)
@@ -39,16 +47,19 @@ function ContractPage (props) {
   })
 
   const standards = standardsMap.size ? Array.from(standardsMap).map((data, index) => {
+    const bg = data[1] > 0 ? 'bg-success' : 'bg-danger'
     return (
       <div key={index} className='container g-0 pt-2'>
         <div className='d-flex flex-row'>
-          <div className='px-2 bg-success badge'>
+          <div className={'px-2 badge ' + bg}>
             {data[0]}<small className='ps-2'>x{data[1]}</small>
           </div>
         </div>
       </div>
     )
   }) : <div>No standards confirmed</div>
+
+  const safety = contractSafety && (contractSafety.safety_level === 'High' ? 'btn-outline-success' : (contractSafety.safety_level === 'Moderate' ? 'btn-outline-warning' : 'btn-outline-danger'))
 
   return props.connected && contract && project ? (
     <div className='pb-3'>
@@ -63,13 +74,14 @@ function ContractPage (props) {
           </div>
           <div className='px-5 bd-highlight' />
           <div className='bd-highlight'>
-            <h5 className='btn-lg btn-outline disabled'>Safety score</h5>
+            <h5 className='btn-lg btn-outline disabled'>Safety level</h5>
           </div>
           <div className='bd-highlight'>
-            <div className='btn btn-lg btn-outline-warning'>69</div>
+            <div className={'btn btn-lg disabled ' + safety}>{contractSafety && contractSafety.safety_level}</div>
           </div>
+          <div className='p-2 bd-highlight' />
           <div className='bd-highlight'>
-            <h5 className='btn-lg btn-outline-warning disabled'>Moderate</h5>
+            <div className='small'>{contractSafety && contractSafety.safety_explanation}</div>
           </div>
         </div>
         <div className='mb-3 py-2'>
@@ -128,7 +140,7 @@ function ContractPage (props) {
             Basic contract validity:
             </div>
             <div className='col-4' style={{ minWidth: '200px' }}>
-              3 / 5 confirmations received
+              not checked
             </div>
           </div>
           <div className='row'>

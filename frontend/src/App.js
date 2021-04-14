@@ -20,7 +20,7 @@ const TestNearConfig = {
   accountSuffix: 'testnet',
   networkId: 'testnet',
   nodeUrl: 'https://rpc.testnet.near.org',
-  contractName: 'dev-1618356551064-1798587',
+  contractName: 'dev-1618410317793-5697263',
   walletUrl: 'https://wallet.testnet.near.org'
 }
 const MainNearConfig = {
@@ -71,6 +71,7 @@ class App extends React.Component {
       viewMethods: [
         'get_project',
         'get_contract',
+        'get_contract_safety_level',
         'get_certificate',
         'get_all_projects',
         'get_project_last_version',

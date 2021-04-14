@@ -26,6 +26,7 @@ const DEFAULT_PROJECT_ID: &str = "Test_Project_111";
 const DEFAULT_CONTRACT_HASH: &str = "FtPgYqXzhGhcsB4rMt8ji5krAQuoDWamLgtUqYMLKnP3";
 const DEFAULT_URL: &str = "near.org";
 const DEFAULT_VERSION: &str = "1.2.3";
+const DEFAULT_STANDARDS_DECLARED: Vec<String>  = vec![];
 const ALICE: &str = "alice";
 const BOB: &str = "bob";
 #[allow(dead_code)]
@@ -138,7 +139,8 @@ impl State {
                 "default contract name".to_string(),
                 hash.try_into().unwrap(),
                 version.to_string(),
-                "source code".to_string()
+                "source code".to_string(),
+                DEFAULT_STANDARDS_DECLARED
             ),
             deposit = REGISTER_PROJECT_DEPOSIT
         );
