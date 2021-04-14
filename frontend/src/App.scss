@@ -1,0 +1,48 @@
+.navbar-brand > img {
+  height: 2em;
+  margin-right: 0.5em;
+}
+
+html {
+  height: 100%;
+}
+
+body > #root > div {
+  min-height: 100vh;
+}
+
+*{
+  -ms-overflow-style: none;
+}
+::-webkit-scrollbar {
+  display: none;
+}
+
+
+.gray {
+  color: #aeaeae;
+}
+
+.bg-gray {
+  color: #bebebe;
+  background-color: #1e1e1e;
+}
+
+.nonavigate {
+  color: #ffffff;
+}
+.nonavigate:hover {
+   color: #ffffff;
+}
+.navigate {
+  color: #8d8d8d;
+  transition: all .2s ease;
+  -webkit-transition: all .2s ease;
+}
+.navigate:hover {
+   color: #616E5C;
+   transition: all .1s ease;
+   -webkit-transition: all .1s ease;
+}
+
+hr {height:1px; border:none; color:#A5C87A; text-align:center;}

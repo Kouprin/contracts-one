@@ -1,0 +1,31 @@
+[package]
+name = "contracts-one"
+version = "0.1.0"
+authors = ["Alex Kouprin <kpr@near.org>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# TODO use released sdk
+#near-sdk = { path = "../../near-sdk-rs/near-sdk", version = "=3.0.0-pre.3" }
+near-sdk = "=3.1.0"
+regex = "1"
+
+[dev-dependencies]
+# TODO use released sdk-sim when available
+#near-sdk-sim = { path = "../../near-sdk-rs/near-sdk-sim", version = "=3.0.0-pre.3" }
+near-sdk-sim = "=3.1.0"
+#near-sdk-sim = { git = "https://github.com/near/near-sdk-rs.git", tag="3.1.0" }
+
+[features]
+expensive_tests = []
+
+[profile.release]
+codegen-units=1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
