@@ -21,9 +21,9 @@ function ContractPage (props) {
     return args[1] === '' ? null : await props._near.contract.get_contract_safety_level({ contract_hash: args[1] })
   }
 
-  const { data: contract } = useSWR(['contract', contractHash], fetchContract, { errorRetryInterval: 500 })
-  const { data: project } = useSWR(['project', contract ? contract.project_name : ''], fetchProject, { errorRetryInterval: 500 })
-  const { data: contractSafety } = useSWR(['contract_safety', contractHash], fetchContractSafety, { errorRetryInterval: 500 })
+  const { data: contract } = useSWR(contractHash ? ['contract', contractHash] : null, fetchContract, { errorRetryInterval: 500 })
+  const { data: project } = useSWR(contract ? ['project', contract.project_name] : null, fetchProject, { errorRetryInterval: 500 })
+  const { data: contractSafety } = useSWR(contractHash ? ['contract_safety', contractHash] : null, fetchContractSafety, { errorRetryInterval: 500 })
 
   const certificates = contract && contract.certificates.length ? contract.certificates.map((data, index) => {
     const approvedMsg = data.approved ? 'approved' : 'refused'
@@ -47,7 +47,7 @@ function ContractPage (props) {
   })
 
   const standards = standardsMap.size ? Array.from(standardsMap).map((data, index) => {
-    const bg = data[1] > 0 ? 'bg-success' : 'bg-danger'
+    const bg = data[1] > 0 ? 'bg-success' : 'bg-secondary'
     return (
       <div key={index} className='container g-0 pt-2'>
         <div className='d-flex flex-row'>
@@ -65,7 +65,7 @@ function ContractPage (props) {
     <div className='pb-3'>
       <div className='container g-0 px-5'>
         <div className='d-flex flex-row bd-highlight mb-3'>
-          <div className='py-2 bd-highlight my-gray'>
+          <div className='py-2 bd-highlight'>
             <h5>Contract</h5>
           </div>
           <div className='p-2 bd-highlight' />

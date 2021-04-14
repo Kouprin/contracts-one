@@ -5,9 +5,11 @@ pub const ERR_REGISTER_PROJECT_DEPOSIT_NOT_ENOUGH: &str =
 pub const ERR_PROJECT_NAME_INVALID: &str = "Project name is invalid";
 pub const ERR_NOT_AN_AUDITOR: &str = "Audits can be submitted by auditors only";
 pub const ERR_INVALID_REPORT_URL: &str = "Report cannot be used more than once";
-pub const ERR_NOT_AN_OWNER: &str = "Only contract owner can do this operation";
+pub const ERR_NOT_AN_OWNER: &str = "Only contracts.one owner can do this operation";
 pub const ERR_ALREADY_EXISTS: &str = "Already exists";
 pub const ERR_ACCESS_DENIED: &str = "Caller is not allowed to do this operation";
+pub const ERR_PROJECT_CREATOR_IS_NOT_OWNER: &str =
+    "Project creator is not in list of project owners";
 
 pub const SAFETY_LEVEL_LOW: &str = "Low";
 pub const SAFETY_LEVEL_LOW_EXPLANATION: &str = "The contract hasn't been audited or audits don't approve safety of the contract. Use it on you own risk.";
@@ -32,18 +34,17 @@ impl SafetyReport {
         }
     }
     pub fn moderate() -> Self {
-      Self {
-          safety_level: SAFETY_LEVEL_MODERATE.to_string(),
-          safety_explanation: SAFETY_LEVEL_MODERATE_EXPLANATION.to_string(),
-      }
+        Self {
+            safety_level: SAFETY_LEVEL_MODERATE.to_string(),
+            safety_explanation: SAFETY_LEVEL_MODERATE_EXPLANATION.to_string(),
+        }
     }
     pub fn high() -> Self {
-      Self {
-          safety_level: SAFETY_LEVEL_HIGH.to_string(),
-          safety_explanation: SAFETY_LEVEL_HIGH_EXPLANATION.to_string(),
-      }
+        Self {
+            safety_level: SAFETY_LEVEL_HIGH.to_string(),
+            safety_explanation: SAFETY_LEVEL_HIGH_EXPLANATION.to_string(),
+        }
     }
-  
 }
 
 pub const REGISTER_PROJECT_DEPOSIT: Balance = 100;

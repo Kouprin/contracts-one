@@ -1,3 +1,4 @@
+mod auditor;
 mod certificate;
 mod contract;
 mod primitives;
@@ -5,6 +6,7 @@ mod project;
 mod user;
 mod version;
 
+pub use crate::auditor::*;
 pub use crate::certificate::*;
 pub use crate::contract::*;
 pub use crate::primitives::*;

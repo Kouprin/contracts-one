@@ -24,8 +24,6 @@ function ProfilePageCommon (props, tab) {
 
   async function submitNewProject (e) {
     e.preventDefault()
-    console.log(formCommaSeparated)
-    console.log(formCommaSeparated.split(/[ ,]+/))
     setShowSubmitButton(false)
     try {
       await props._near.contract.register_project(
@@ -37,6 +35,20 @@ function ProfilePageCommon (props, tab) {
         }, '200000000000000', '0')
       // TODO
       window.location.href = '#/projectInfo/' + newProjectName
+    } catch (e) {
+      console.log('result', e)
+      setShowSubmitButton(true)
+    }
+  }
+
+  async function registerAsAuditor (e) {
+    e.preventDefault()
+    setShowSubmitButton(false)
+    try {
+      await props._near.contract.register_auditor(
+        {
+          user_id: profileId
+        }, '200000000000000', '0')
     } catch (e) {
       console.log('result', e)
       setShowSubmitButton(true)
@@ -77,12 +89,12 @@ function ProfilePageCommon (props, tab) {
   }
 
   const fetchContract = async (...args) => {
-    return args[1] === '' ? mapContract(null) : mapContract(await props._near.contract.get_contract({ contract_hash: args[1] }))
+    return mapContract(await props._near.contract.get_contract({ contract_hash: args[1] }))
   }
 
   const { data: user } = useSWR(['user_id', profileId], fetchUser, { errorRetryInterval: 500 })
-  const { data: audits } = useSWR(['user_audits', profileId], fetchUserAudits, { errorRetryInterval: 500 })
-  const { data: contract } = useSWR(['contract', auditHash], fetchContract, { errorRetryInterval: 500 })
+  const { data: audits } = useSWR(user && user.auditor !== null ? ['user_audits', profileId] : null, fetchUserAudits, { errorRetryInterval: 500 })
+  const { data: contract } = useSWR(auditHash ? ['contract', auditHash] : null, fetchContract, { errorRetryInterval: 500 })
 
   const userProjects = user && user.projects_owned.map((data, index) => {
     return (
@@ -94,7 +106,7 @@ function ProfilePageCommon (props, tab) {
     )
   })
 
-  const userAudits = audits && audits.map((data, index) => {
+  const userAudits = audits && audits.length > 0 ? audits.map((data, index) => {
     return (
       <div key={index} className='container g-0'>
         <div>
@@ -102,7 +114,7 @@ function ProfilePageCommon (props, tab) {
         </div>
       </div>
     )
-  })
+  }) : <div className='container g-0'>No audits found</div>
 
   const isMe = profileId === props.signedAccountId
 
@@ -110,7 +122,7 @@ function ProfilePageCommon (props, tab) {
     <div className='pb-3'>
       <div className='container g-0 px-5'>
         <div className='d-flex flex-row bd-highlight mb-3'>
-          <div className='py-2 bd-highlight my-gray'>
+          <div className='py-2 bd-highlight'>
             <h5>Profile</h5>
           </div>
           <div className='p-2 bd-highlight' />
@@ -189,11 +201,18 @@ function ProfilePageCommon (props, tab) {
         {tab === tabs.AUDITS &&
           <div>
             <div className='pb-3'>
-              {userAudits}
+              {user && !user.auditor
+                ? (
+                  <div>
+                    <h4>Not an auditor. Register?</h4>
+                    <div className='p-2 bd-highlight' />
+                    {showSubmitButton ? <button className='btn btn-primary' onClick={(e) => registerAsAuditor(e)}>Register as auditor</button> : loader()}
+                  </div>)
+                : userAudits}
             </div>
-            <hr />
-            {isMe &&
+            {isMe && user && user.auditor &&
               <div className='mb-3 py-2'>
+                <hr />
                 <h4>Submit an audit</h4>
                 <form onSubmit={(e) => submitNewAudit(e)}>
                   <div className='d-flex align-items-center justify-content-center'>

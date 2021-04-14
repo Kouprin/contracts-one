@@ -111,11 +111,6 @@ impl Global {
         owners: Vec<ValidAccountId>,
     ) -> bool {
         assert!(
-            self.can_user_create_project(&env::predecessor_account_id()),
-            "{}",
-            ERR_ACCESS_DENIED
-        );
-        assert!(
             project_name.len() > 0 && project_name.len() <= 64,
             "{}",
             ERR_PROJECT_NAME_INVALID
@@ -124,12 +119,16 @@ impl Global {
         assert!(re.is_match(&project_name), "{}", ERR_PROJECT_NAME_INVALID);
 
         let project_id = Project::get_id(&project_name);
-
+        let mut is_predecessor_found = false;
         for user_id in owners.iter() {
+            if user_id.as_ref() == &env::predecessor_account_id() {
+                is_predecessor_found = true;
+            }
             let mut user = self.extract_user_or_create(user_id.as_ref());
             user.projects_owned.insert(&project_name);
             self.save_user_or_panic(user_id.as_ref(), &user);
         }
+        assert!(is_predecessor_found, "{}", ERR_PROJECT_CREATOR_IS_NOT_OWNER);
 
         let mut prefix = Vec::with_capacity(33);
         prefix.push(b'x');

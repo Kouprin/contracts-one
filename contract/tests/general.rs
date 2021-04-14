@@ -26,12 +26,12 @@ const DEFAULT_PROJECT_ID: &str = "Test_Project_111";
 const DEFAULT_CONTRACT_HASH: &str = "FtPgYqXzhGhcsB4rMt8ji5krAQuoDWamLgtUqYMLKnP3";
 const DEFAULT_URL: &str = "near.org";
 const DEFAULT_VERSION: &str = "1.2.3";
-const DEFAULT_STANDARDS_DECLARED: Vec<String>  = vec![];
+const DEFAULT_STANDARDS_DECLARED: Vec<String> = vec![];
 const ALICE: &str = "alice";
 const BOB: &str = "bob";
 #[allow(dead_code)]
 const CAROL: &str = "carol";
-const DEFAULT_PROJECT_OWNERS: &[&'static str; 2] = &[ALICE, BOB];
+const DEFAULT_PROJECT_OWNERS: &[&'static str; 3] = &["root", ALICE, BOB];
 
 struct State {
     pub root: UserAccount,
@@ -277,27 +277,6 @@ fn register_project_by_not_a_user() {
 
     let contract = &state.contract;
     let alice = state.accounts.get(ALICE).unwrap();
-    let outcome = call!(
-        alice,
-        contract.register_project(
-            DEFAULT_PROJECT_ID.to_string(),
-            "bla".to_string(),
-            DEFAULT_URL.to_string(),
-            DEFAULT_PROJECT_OWNERS
-                .iter()
-                .map(|o| o.to_string().try_into().unwrap())
-                .collect()
-        ),
-        deposit = REGISTER_PROJECT_DEPOSIT
-    );
-    assert!(
-        format!("{:?}", outcome.status()).contains(ERR_ACCESS_DENIED),
-        "received {:?}",
-        outcome.status()
-    );
-    assert!(!outcome.is_ok(), "Should panic");
-
-    state.do_create_user(ALICE, None);
     let outcome = call!(
         alice,
         contract.register_project(
