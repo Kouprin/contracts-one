@@ -4,8 +4,8 @@ use std::convert::TryInto;
 /// Import the generated proxy contract
 use contracts_one::GlobalContract as COContract;
 use contracts_one::{
-    ContractView, ProjectView, ProjectViewLimited, CREATE_USER_DEPOSIT, ERR_ACCESS_DENIED,
-    ERR_NOT_AN_AUDITOR, ERR_PROJECT_NAME_INVALID, REGISTER_AUDITOR_DEPOSIT,
+    ContractView, ProjectView, ProjectViewLimited, UserView, CREATE_USER_DEPOSIT,
+    ERR_ACCESS_DENIED, ERR_NOT_AN_AUDITOR, ERR_PROJECT_NAME_INVALID, REGISTER_AUDITOR_DEPOSIT,
     REGISTER_PROJECT_DEPOSIT, SIGN_AUDIT_DEPOSIT,
 };
 
@@ -86,6 +86,12 @@ impl State {
     pub fn get_project(&self, project_name: &str) -> ProjectView {
         let contract = &self.contract;
         let res = view!(contract.get_project(project_name.into())).unwrap_json();
+        res
+    }
+
+    pub fn get_user(&self, user_name: &str) -> Option<UserView> {
+        let contract = &self.contract;
+        let res = view!(contract.get_user(user_name.try_into().unwrap())).unwrap_json();
         res
     }
 
@@ -224,6 +230,8 @@ impl State {
 
     pub fn validate(&self) {
         let projects = self.get_all_projects();
+        let a = self.get_user(ALICE);
+        // println!("A = {:?}", a);
         //assert_eq!(project_names.len(), 5);
 
         //assert!(false);

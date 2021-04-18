@@ -1,5 +1,7 @@
 use crate::*;
 
+const STATE_KEY: &[u8] = b"STATE";
+
 pub const ERR_DEPOSIT_NOT_ENOUGH: &str = "Attached deposit is not enough";
 pub const ERR_PROJECT_NAME_INVALID: &str = "Project name is invalid";
 pub const ERR_NOT_AN_AUDITOR: &str = "Audits can be submitted by auditors only";
@@ -36,6 +38,21 @@ pub type ProjectId = CryptoHash;
 pub type Standard = String;
 pub type Url = String;
 pub type UserId = AccountId;
+
+pub trait ReadFromState<T> {
+    fn read_from_state(&self) -> T;
+}
+
+impl ReadFromState<Project> for ProjectId {
+    fn read_from_state(&self) -> Project {
+        // TODO how heavy is it?
+        Global::try_from_slice(&env::storage_read(STATE_KEY).unwrap())
+            .unwrap()
+            .projects
+            .get(self)
+            .unwrap()
+    }
+}
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub enum IssueLevel {

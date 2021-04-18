@@ -4,7 +4,7 @@ use crate::*;
 pub struct User {
     pub reputation: u64,
 
-    pub projects_owned: UnorderedSet<String>,
+    pub projects_owned: UnorderedSet<ProjectId>,
 
     pub auditor: Option<Auditor>,
 }
@@ -14,7 +14,7 @@ pub struct User {
 pub struct UserView {
     pub reputation: u64,
 
-    pub projects_owned: Vec<String>,
+    pub projects_owned: Vec<ProjectViewLimited>,
 
     pub auditor: Option<AuditorView>,
 }
@@ -23,7 +23,11 @@ impl From<&User> for UserView {
     fn from(u: &User) -> Self {
         Self {
             reputation: u.reputation,
-            projects_owned: u.projects_owned.to_vec(),
+            projects_owned: u
+                .projects_owned
+                .iter()
+                .map(|id| (&id.read_from_state()).into())
+                .collect(),
             auditor: u.auditor.as_ref().map(|a| a.into()),
         }
     }

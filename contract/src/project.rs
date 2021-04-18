@@ -156,7 +156,7 @@ impl Global {
                 is_predecessor_found = true;
             }
             let mut user = self.extract_user_or_create(user_id.as_ref());
-            user.projects_owned.insert(&project_name);
+            user.projects_owned.insert(&project_id);
             self.save_user_or_panic(user_id.as_ref(), &user);
         }
         assert!(is_predecessor_found, "{}", ERR_PROJECT_CREATOR_IS_NOT_OWNER);
