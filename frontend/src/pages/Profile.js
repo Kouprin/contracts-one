@@ -3,7 +3,7 @@ import { useParams } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 
-import { mapContract, loader } from '../components/Helpers'
+import { mapContract, loader, mapProjectViewLimited, getBgByStatus } from '../components/Helpers'
 
 const tabs = {
   STATS: 'summer',
@@ -97,11 +97,23 @@ function ProfilePageCommon (props, tab) {
   const { data: contract } = useSWR(auditHash ? ['contract', auditHash] : null, fetchContract, { errorRetryInterval: 500 })
 
   const userProjects = user && user.projects_owned.map((data, index) => {
+    const project = mapProjectViewLimited(data)
+    const projectInfoDestination = '/projectInfo/' + project.name
+    const versionDestination = project.lastVersion && '/contract/' + project.lastVersionContractHash
     return (
-      <div key={index} className='container g-0'>
-        <div>
-          <Link to={`/projectInfo/${data}`}>{data}</Link>
+      <div key={index} className='row'>
+        <div className='col-3' style={{ minWidth: '300px' }}>
+          <div className='d-flex flex-row'>
+            <Link to={projectInfoDestination}>{project.name}</Link>
+            <div className={'mt-1 mx-2 badge bg-success ' + getBgByStatus(project.auditStatus)}>
+              {project.auditStatus}
+            </div>
+          </div>
         </div>
+        {project.lastVersion &&
+          <div className='col-1'>
+            <Link to={versionDestination}>{project.lastVersion}</Link>
+          </div>}
       </div>
     )
   })
@@ -204,9 +216,13 @@ function ProfilePageCommon (props, tab) {
               {user && !user.auditor
                 ? (
                   <div>
+                    <h4>Not an auditor. Contact to devs to register as auditor.</h4>
+                    {/*
+                    TODO
                     <h4>Not an auditor. Register?</h4>
                     <div className='p-2 bd-highlight' />
                     {showSubmitButton ? <button className='btn btn-primary' onClick={(e) => registerAsAuditor(e)}>Register as auditor</button> : loader()}
+                    */}
                   </div>)
                 : userAudits}
             </div>

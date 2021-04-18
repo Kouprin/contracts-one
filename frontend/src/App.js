@@ -20,7 +20,7 @@ const TestNearConfig = {
   accountSuffix: 'testnet',
   networkId: 'testnet',
   nodeUrl: 'https://rpc.testnet.near.org',
-  contractName: 'dev-1618761987982-7980263',
+  contractName: 'dev-1618768871022-1312001',
   walletUrl: 'https://wallet.testnet.near.org'
 }
 const MainNearConfig = {
