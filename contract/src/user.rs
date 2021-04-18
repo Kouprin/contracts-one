@@ -31,16 +31,27 @@ impl From<&User> for UserView {
 
 #[near_bindgen]
 impl Global {
-    pub fn get_user(&self, user_id: ValidAccountId) -> UserView {
-        (&self.users.get(user_id.as_ref()).unwrap()).into()
+    pub fn get_user(&self, user_id: ValidAccountId) -> Option<UserView> {
+        self.users.get(user_id.as_ref()).map(|u| (&u).into())
     }
 
     #[payable]
-    pub fn create_user(&mut self, user_id: ValidAccountId) -> UserView {
+    pub fn create_user(&mut self, user_id: ValidAccountId) -> bool {
+        assert!(
+            self.users.get(user_id.as_ref()).is_none(),
+            "{}",
+            ERR_ALREADY_EXISTS
+        );
         let user = self.extract_user_or_create(user_id.as_ref());
         self.save_user_or_panic(user_id.as_ref(), &user);
 
-        (&user).into()
+        true
+    }
+
+    #[payable]
+    pub fn submit_audit_feedback(&mut self, _certificate_id: CertificateId) -> bool {
+        // TODO
+        true
     }
 }
 

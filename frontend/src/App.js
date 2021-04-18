@@ -71,20 +71,21 @@ class App extends React.Component {
       viewMethods: [
         'get_project',
         'get_contract',
-        'get_contract_safety_level',
+        'get_contract_safety_report',
         'get_certificate',
         'get_all_projects',
         'get_project_last_version',
         'get_contract_source_code',
         'get_user',
-        'get_user_audits'
+        'get_auditor_certificates'
       ],
       changeMethods: [
         'create_user',
         'register_project',
         'register_contract',
         'register_auditor',
-        'sign_audit'
+        'sign_audit',
+        'submit_audit_feedback'
       ]
     })
 

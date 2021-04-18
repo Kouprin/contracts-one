@@ -89,12 +89,6 @@ impl State {
         res
     }
 
-    pub fn get_project_id(&self, project_name: &str) -> Base58CryptoHash {
-        let contract = &self.contract;
-        let res = view!(contract.get_project_id(project_name.into())).unwrap_json();
-        res
-    }
-
     pub fn do_register_project(&self, name: &str, owners: &[&str], err: Option<&str>) {
         let contract = &self.contract;
         let outcome = call!(
@@ -179,7 +173,7 @@ impl State {
         let contract = &self.contract;
         let outcome = call!(
             self.root,
-            contract.register_auditor(account_name.try_into().unwrap()),
+            contract.register_auditor(account_name.try_into().unwrap(), "description".into()),
             deposit = REGISTER_AUDITOR_DEPOSIT
         );
         if let Some(msg) = err {

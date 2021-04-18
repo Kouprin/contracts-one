@@ -18,6 +18,8 @@ pub struct Project {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct ProjectView {
+    pub project_id: Base58CryptoHash,
+
     pub project_name: String,
     pub description: String,
     pub url: String,
@@ -25,16 +27,23 @@ pub struct ProjectView {
     pub owners: Vec<AccountId>,
 
     pub contracts: Vec<ContractView>,
+
+    pub audit_status: String,
 }
 
 impl From<&Project> for ProjectView {
     fn from(p: &Project) -> Self {
         Self {
+            project_id: Project::get_id(&p.project_name).into(),
             project_name: p.project_name.clone(),
             description: p.description.clone(),
             url: p.url.clone(),
             owners: p.owners.to_vec(),
             contracts: p.contracts.iter().map(|(_, c)| (&c).into()).collect(),
+            audit_status: (&p.get_last_version().map_or(AuditStatus::Unknown, |v| {
+                p.contracts.get(&v).unwrap().audit_status
+            }))
+                .into(),
         }
     }
 }
@@ -66,12 +75,10 @@ impl Project {
 
 #[near_bindgen]
 impl Global {
-    pub fn get_project_id(&self, project_name: String) -> Base58CryptoHash {
-        Project::get_id(&project_name).into()
-    }
-
-    pub fn get_project(&self, project_name: String) -> ProjectView {
-        (&self.projects.get(&Project::get_id(&project_name)).unwrap()).into()
+    pub fn get_project(&self, project_name: String) -> Option<ProjectView> {
+        self.projects
+            .get(&Project::get_id(&project_name))
+            .map(|p| (&p).into())
     }
 
     pub fn get_all_projects(
@@ -79,19 +86,26 @@ impl Global {
         from: u64,
         to: u64,
     ) -> Vec<(String, Option<(String, Base58CryptoHash)>)> {
-        let from = min(from, self.projects.len()) as usize;
-        let to = min(to, self.projects.len()) as usize;
-        self.projects
-            .values()
-            .map(|p| {
-                (
-                    p.project_name.clone(),
-                    p.get_last_version_and_hash()
-                        .map(|(v, c)| ((&v).into(), c.into())),
-                )
-            })
-            .collect::<Vec<(String, Option<(String, Base58CryptoHash)>)>>()[from..to]
-            .to_vec()
+        let from = min(from, self.projects.len());
+        let to = min(to, self.projects.len());
+        let mut res = vec![];
+        for i in from..to {
+            // values_as_vector() should work for O(1)
+            res.push(
+                self.projects
+                    .values_as_vector()
+                    .get(i)
+                    .map(|p| {
+                        (
+                            p.project_name.clone(),
+                            p.get_last_version_and_hash()
+                                .map(|(v, c)| ((&v).into(), c.into())),
+                        )
+                    })
+                    .unwrap(),
+            )
+        }
+        res
     }
 
     pub fn get_project_last_version(&self, project_name: String) -> Option<String> {

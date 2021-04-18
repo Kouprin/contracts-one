@@ -18,6 +18,8 @@ pub struct Contract {
 
     pub standards_declared: UnorderedSet<Standard>,
 
+    pub audit_status: AuditStatus,
+
     pub auditors: UnorderedMap<UserId, CertificateId>,
     pub certificates: UnorderedMap<CertificateId, Certificate>,
 }
@@ -37,6 +39,8 @@ pub struct ContractView {
 
     pub publisher: UserId,
 
+    pub audit_status: String,
+
     pub standards_declared: Vec<Standard>,
 
     pub certificates: Vec<CertificateView>,
@@ -52,6 +56,7 @@ impl From<&Contract> for ContractView {
             published_time: c.published_time.into(),
             source_code_size: c.source_code_archived.len() as u64,
             publisher: c.publisher.clone(),
+            audit_status: (&c.audit_status).into(),
             standards_declared: c.standards_declared.to_vec(),
             certificates: c.certificates.iter().map(|(_, v)| (&v).into()).collect(),
         }
@@ -60,49 +65,18 @@ impl From<&Contract> for ContractView {
 
 #[near_bindgen]
 impl Global {
-    pub fn get_contract(&self, contract_hash: Base58CryptoHash) -> ContractView {
-        let (project_id, version) = self
-            .contract_hash_to_contract_id
-            .get(&contract_hash.into())
-            .unwrap();
-        (&self
-            .projects
-            .get(&project_id)
-            .unwrap()
-            .contracts
-            .get(&version)
-            .unwrap())
-            .into()
+    pub fn get_contract(&self, contract_hash: Base58CryptoHash) -> Option<ContractView> {
+        self.contract_hash_to_contract(&contract_hash.into())
+            .map(|c| (&c).into())
     }
 
-    pub fn get_contract_safety_level(&self, contract_hash: Base58CryptoHash) -> SafetyReport {
-        let (project_id, version) = self
-            .contract_hash_to_contract_id
-            .get(&contract_hash.into())
-            .unwrap();
-        self.calculate_safety_level(
-            &self
-                .projects
-                .get(&project_id)
-                .unwrap()
-                .contracts
-                .get(&version)
-                .unwrap(),
-        )
+    pub fn get_contract_safety_report(&self, contract_hash: Base58CryptoHash) -> SafetyReport {
+        self.calculate_safety_level(&self.contract_hash_to_contract(&contract_hash.into()))
     }
 
-    pub fn get_contract_source_code(&self, contract_hash: Base58CryptoHash) -> String {
-        let (project_id, version) = self
-            .contract_hash_to_contract_id
-            .get(&contract_hash.into())
-            .unwrap();
-        self.projects
-            .get(&project_id)
-            .unwrap()
-            .contracts
-            .get(&version)
-            .unwrap()
-            .source_code_archived
+    pub fn get_contract_source_code(&self, contract_hash: Base58CryptoHash) -> Option<String> {
+        self.contract_hash_to_contract(&contract_hash.into())
+            .map(|c| c.source_code_archived)
     }
 
     #[payable]
@@ -142,6 +116,7 @@ impl Global {
             source_code_archived,
             publisher: env::predecessor_account_id(),
             standards_declared: standards_declared_set,
+            audit_status: AuditStatus::Unaudited,
             auditors: UnorderedMap::new(prefix2),
             certificates: UnorderedMap::new(prefix3),
         };
@@ -158,7 +133,26 @@ impl Global {
 }
 
 impl Global {
-    pub(crate) fn calculate_safety_level(&self, contract: &Contract) -> SafetyReport {
+    pub(crate) fn contract_hash_to_contract(
+        &self,
+        contract_hash: &ContractHash,
+    ) -> Option<Contract> {
+        match self.contract_hash_to_contract_id.get(contract_hash) {
+            None => None,
+            Some((project_id, version)) => self
+                .projects
+                .get(&project_id)
+                .unwrap()
+                .contracts
+                .get(&version),
+        }
+    }
+
+    pub(crate) fn calculate_safety_level(&self, contract: &Option<Contract>) -> SafetyReport {
+        if contract.is_none() {
+            return SafetyReport::low();
+        }
+        let contract = contract.as_ref().unwrap();
         if contract.certificates.len() == 0 {
             return SafetyReport::low();
         }
