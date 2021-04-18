@@ -3,7 +3,7 @@ import { useParams } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 
-import { loader } from '../components/Helpers'
+import { loader, getBgByStatus, mapProjectViewLimited } from '../components/Helpers'
 
 const FetchLimit = 25
 
@@ -20,25 +20,27 @@ function ProjectsPage (props) {
 
   const { data: projects } = useSWR(['all_projects', from], fetchProjects, { errorRetryInterval: 500 })
 
-  const projectList = projects ? projects.map((data, index) => {
-    const projectInfoDestination = '/projectInfo/' + data[0]
-    const versionDestination = data[1] && '/contract/' + data[1][1]
+  const projectList = projects && projects.map((data, index) => {
+    const project = mapProjectViewLimited(data)
+    const projectInfoDestination = '/projectInfo/' + project.name
+    const versionDestination = project.lastVersion && '/contract/' + project.lastVersionContractHash
     return (
       <div key={index} className='row'>
-        <div className='col-2' style={{ minWidth: '200px' }}>
-          <Link to={projectInfoDestination}>{data[0]}</Link>
+        <div className='col-3' style={{ minWidth: '300px' }}>
+          <div className='d-flex flex-row'>
+            <Link to={projectInfoDestination}>{project.name}</Link>
+            <div className={'mt-1 mx-2 badge bg-success ' + getBgByStatus(project.auditStatus)}>
+              {project.auditStatus}
+            </div>
+          </div>
         </div>
-        {data[1] &&
-          <div className='col-2' style={{ minWidth: '200px' }}>
-            {data[1][0]}
-          </div>}
-        {data[1] &&
-          <div className='col-4' style={{ minWidth: '200px' }}>
-            <Link to={versionDestination}>{data[1][1]}</Link>
+        {project.lastVersion &&
+          <div className='col-1'>
+            <Link to={versionDestination}>{project.lastVersion}</Link>
           </div>}
       </div>
     )
-  }) : <div>No standards confirmed</div>
+  })
 
   return projects ? (
     <div className='pb-3'>
@@ -55,7 +57,7 @@ function ProjectsPage (props) {
         </div>
       </div>
     </div>
-  ) : (loader())
+  ) : loader()
 }
 
 export default ProjectsPage

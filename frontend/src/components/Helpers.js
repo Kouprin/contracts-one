@@ -15,12 +15,30 @@ function loader () {
   )
 }
 
+function getBgByStatus (status) {
+  if (status === 'Audited') return 'bg-success'
+  return 'bg-danger'
+}
+
+const mapProjectViewLimited = (c) => {
+  return c ? {
+    auditStatus: c.audit_status,
+    description: c.description,
+    id: c.project_id,
+    lastVersion: c.last_version,
+    lastVersionContractHash: c.last_version_contract_hash,
+    name: c.project_name
+  } : null
+}
+
+// TODO
 const mapContract = (c) => {
   return c || {}
 }
 
+// TODO
 const mapProject = (c) => {
   return c || null
 }
 
-export { NEAR, fromNear, loader, mapContract, mapProject }
+export { NEAR, fromNear, loader, getBgByStatus, mapContract, mapProject, mapProjectViewLimited }

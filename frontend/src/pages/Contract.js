@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 import Moment from 'react-moment'
 
-import { loader, mapContract, mapProject } from '../components/Helpers'
+import { loader, mapContract, mapProject, getBgByStatus } from '../components/Helpers'
 
 function ContractPage (props) {
   const { contractHash } = useParams()
@@ -18,7 +18,7 @@ function ContractPage (props) {
   }
 
   const fetchContractSafety = async (...args) => {
-    return args[1] === '' ? null : await props._near.contract.get_contract_safety_level({ contract_hash: args[1] })
+    return args[1] === '' ? null : await props._near.contract.get_contract_safety_report({ contract_hash: args[1] })
   }
 
   const { data: contract } = useSWR(contractHash ? ['contract', contractHash] : null, fetchContract, { errorRetryInterval: 500 })
@@ -137,10 +137,14 @@ function ContractPage (props) {
           </div>
           <div className='row'>
             <div className='col-2' style={{ minWidth: '200px' }}>
-            Basic contract validity:
+            Audit status:
             </div>
             <div className='col-4' style={{ minWidth: '200px' }}>
-              not checked
+              <div className='d-flex flex-row'>
+                <div className={'mt-1 me-2 badge bg-success ' + getBgByStatus(contract.audit_status)}>
+                  {contract.audit_status}
+                </div>
+              </div>
             </div>
           </div>
           <div className='row'>
