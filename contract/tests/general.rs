@@ -4,9 +4,9 @@ use std::convert::TryInto;
 /// Import the generated proxy contract
 use contracts_one::GlobalContract as COContract;
 use contracts_one::{
-    ContractView, ProjectView, CREATE_USER_DEPOSIT, ERR_ACCESS_DENIED, ERR_NOT_AN_AUDITOR,
-    ERR_PROJECT_NAME_INVALID, REGISTER_AUDITOR_DEPOSIT, REGISTER_PROJECT_DEPOSIT,
-    SIGN_AUDIT_DEPOSIT,
+    ContractView, ProjectView, ProjectViewLimited, CREATE_USER_DEPOSIT, ERR_ACCESS_DENIED,
+    ERR_NOT_AN_AUDITOR, ERR_PROJECT_NAME_INVALID, REGISTER_AUDITOR_DEPOSIT,
+    REGISTER_PROJECT_DEPOSIT, SIGN_AUDIT_DEPOSIT,
 };
 
 use near_sdk::json_types::Base58CryptoHash;
@@ -71,7 +71,7 @@ impl State {
         self.accounts.insert(BOB.into(), bob);
     }
 
-    pub fn get_all_projects(&self) -> Vec<(String, Option<(String, Base58CryptoHash)>)> {
+    pub fn get_all_projects(&self) -> Vec<ProjectViewLimited> {
         let contract = &self.contract;
         let res = view!(contract.get_all_projects(0, 1000)).unwrap_json();
         res

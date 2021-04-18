@@ -40,11 +40,47 @@ impl From<&Project> for ProjectView {
             url: p.url.clone(),
             owners: p.owners.to_vec(),
             contracts: p.contracts.iter().map(|(_, c)| (&c).into()).collect(),
-            audit_status: (&p.get_last_version().map_or(AuditStatus::Unknown, |v| {
-                p.contracts.get(&v).unwrap().audit_status
-            }))
-                .into(),
+            audit_status: p
+                .view_last_contract()
+                .map_or((&AuditStatus::Unknown).into(), |c| (&c.audit_status).into()),
         }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct ProjectViewLimited {
+    pub project_id: Base58CryptoHash,
+
+    pub project_name: String,
+    pub description: String,
+
+    pub last_version: Option<String>,
+    pub last_version_contract_hash: Option<Base58CryptoHash>,
+
+    pub audit_status: String,
+}
+
+impl From<&Project> for ProjectViewLimited {
+    fn from(p: &Project) -> Self {
+        p.view_last_contract().map_or(
+            Self {
+                project_id: Project::get_id(&p.project_name).into(),
+                project_name: p.project_name.clone(),
+                description: p.description.clone(),
+                last_version: None,
+                last_version_contract_hash: None,
+                audit_status: (&AuditStatus::Unknown).into(),
+            },
+            |c| Self {
+                project_id: Project::get_id(&p.project_name).into(),
+                project_name: p.project_name.clone(),
+                description: p.description.clone(),
+                last_version: Some((&c.version).into()),
+                last_version_contract_hash: Some(c.hash.into()),
+                audit_status: (&c.audit_status).into(),
+            },
+        )
     }
 }
 
@@ -64,12 +100,9 @@ impl Project {
         assert!(self.contracts.insert(version, contract).is_none());
     }
 
-    pub(crate) fn get_last_version(&self) -> Option<Version> {
-        self.contracts.iter_rev().next().map(|(v, _)| v)
-    }
-
-    pub(crate) fn get_last_version_and_hash(&self) -> Option<(Version, ContractHash)> {
-        self.contracts.iter_rev().next().map(|(v, c)| (v, c.hash))
+    // TODO use Rust lifetimes and return Option<&Contract> instead
+    pub(crate) fn view_last_contract(&self) -> Option<Contract> {
+        self.contracts.iter_rev().next().map(|(_, c)| c)
     }
 }
 
@@ -81,39 +114,23 @@ impl Global {
             .map(|p| (&p).into())
     }
 
-    pub fn get_all_projects(
-        &self,
-        from: u64,
-        to: u64,
-    ) -> Vec<(String, Option<(String, Base58CryptoHash)>)> {
+    pub fn get_all_projects(&self, from: u64, to: u64) -> Vec<ProjectViewLimited> {
         let from = min(from, self.projects.len());
         let to = min(to, self.projects.len());
         let mut res = vec![];
         for i in from..to {
             // values_as_vector() should work for O(1)
-            res.push(
-                self.projects
-                    .values_as_vector()
-                    .get(i)
-                    .map(|p| {
-                        (
-                            p.project_name.clone(),
-                            p.get_last_version_and_hash()
-                                .map(|(v, c)| ((&v).into(), c.into())),
-                        )
-                    })
-                    .unwrap(),
-            )
+            res.push((&self.projects.values_as_vector().get(i).unwrap()).into())
         }
         res
     }
 
-    pub fn get_project_last_version(&self, project_name: String) -> Option<String> {
+    pub fn get_project_last_contract(&self, project_name: String) -> Option<ContractView> {
         self.projects
             .get(&Project::get_id(&project_name))
             .unwrap()
-            .get_last_version()
-            .map(|v| (&v).into())
+            .view_last_contract()
+            .map(|c| (&c).into())
     }
 
     #[payable]
