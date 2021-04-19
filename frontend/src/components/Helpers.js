@@ -27,7 +27,21 @@ const mapProjectViewLimited = (c) => {
     id: c.project_id,
     lastVersion: c.last_version,
     lastVersionContractHash: c.last_version_contract_hash,
-    name: c.project_name
+    name: c.project_name,
+    publisher: c.publisher,
+    numContracts: c.num_contracts
+  } : null
+}
+
+const mapCertificateView = (c) => {
+  return c ? {
+    projectName: c.project_name,
+    version: c.version,
+    author: c.author,
+    reportUrl: c.report_url,
+    standardsConfirmed: c.standards_confirmed,
+    approved: c.approved,
+    score: c.score
   } : null
 }
 
@@ -41,4 +55,4 @@ const mapProject = (c) => {
   return c || null
 }
 
-export { NEAR, fromNear, loader, getBgByStatus, mapContract, mapProject, mapProjectViewLimited }
+export { NEAR, fromNear, loader, getBgByStatus, mapContract, mapProject, mapProjectViewLimited, mapCertificateView }

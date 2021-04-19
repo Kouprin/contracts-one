@@ -210,6 +210,7 @@ impl State {
                 project_id.to_string(),
                 version.to_string(),
                 url.to_string(),
+                "summary".to_string(),
                 vec!["boom".to_string()],
                 true,
                 Some(6)

@@ -1,3 +1,7 @@
+use regex::Regex;
+use std::cmp::min;
+use std::convert::TryInto;
+
 mod auditor;
 mod certificate;
 mod contract;

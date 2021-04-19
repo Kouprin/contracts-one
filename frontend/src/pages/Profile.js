@@ -3,12 +3,14 @@ import { useParams } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 
+import { CertificateCard } from '../components/CertificateCard'
+import { ProjectCard } from '../components/ProjectCard'
 import { mapContract, loader, mapProjectViewLimited, getBgByStatus } from '../components/Helpers'
 
 const tabs = {
-  STATS: 'summer',
-  PROJECTS: 'winter',
-  AUDITS: 'spring'
+  STATS: 'stats',
+  PROJECTS: 'projects',
+  AUDITS: 'audits'
 }
 
 function ProfilePageCommon (props, tab) {
@@ -32,7 +34,7 @@ function ProfilePageCommon (props, tab) {
           description: newProjectDesc,
           url: formURL,
           owners: formCommaSeparated.split(/[ ,]+/)
-        }, '200000000000000', '0')
+        }, '200000000000000', '1')
       // TODO
       window.location.href = '#/projectInfo/' + newProjectName
     } catch (e) {
@@ -71,7 +73,7 @@ function ProfilePageCommon (props, tab) {
           standards_confirmed: formCommaSeparated.split(/[ ,]+/),
           approved: auditRadioSafe,
           score: auditRating === undefined ? null : parseInt(auditRating)
-        }, '200000000000000', '0')
+        }, '200000000000000', '1')
       // TODO
       window.location.href = '#/contract/' + auditHash
     } catch (e) {
@@ -84,8 +86,8 @@ function ProfilePageCommon (props, tab) {
     return await props._near.contract.get_user({ user_id: args[1] })
   }
 
-  const fetchUserAudits = async (...args) => {
-    return await props._near.contract.get_user_audits({ user_id: args[1] })
+  const fetchCertificates = async (...args) => {
+    return await props._near.contract.get_auditor_certificates({ user_id: args[1] })
   }
 
   const fetchContract = async (...args) => {
@@ -93,40 +95,16 @@ function ProfilePageCommon (props, tab) {
   }
 
   const { data: user } = useSWR(['user_id', profileId], fetchUser, { errorRetryInterval: 500 })
-  const { data: audits } = useSWR(user && user.auditor !== null ? ['user_audits', profileId] : null, fetchUserAudits, { errorRetryInterval: 500 })
+  const { data: certificates } = useSWR(user && user.auditor !== null ? ['user_audits', profileId] : null, fetchCertificates, { errorRetryInterval: 500 })
   const { data: contract } = useSWR(auditHash ? ['contract', auditHash] : null, fetchContract, { errorRetryInterval: 500 })
 
   const userProjects = user && user.projects_owned.map((data, index) => {
-    const project = mapProjectViewLimited(data)
-    const projectInfoDestination = '/projectInfo/' + project.name
-    const versionDestination = project.lastVersion && '/contract/' + project.lastVersionContractHash
-    return (
-      <div key={index} className='row'>
-        <div className='col-3' style={{ minWidth: '300px' }}>
-          <div className='d-flex flex-row'>
-            <Link to={projectInfoDestination}>{project.name}</Link>
-            <div className={'mt-1 mx-2 badge bg-success ' + getBgByStatus(project.auditStatus)}>
-              {project.auditStatus}
-            </div>
-          </div>
-        </div>
-        {project.lastVersion &&
-          <div className='col-1'>
-            <Link to={versionDestination}>{project.lastVersion}</Link>
-          </div>}
-      </div>
-    )
+    return <ProjectCard {...props} key={index} data={data} />
   })
 
-  const userAudits = audits && audits.length > 0 ? audits.map((data, index) => {
-    return (
-      <div key={index} className='container g-0'>
-        <div>
-          <Link to={`/projectInfo/${data.project_name}`}>{data.project_name}, v. {data.version}</Link>
-        </div>
-      </div>
-    )
-  }) : <div className='container g-0'>No audits found</div>
+  const userCertificates = certificates && certificates.length > 0 ? certificates.map((data, index) => {
+    return <CertificateCard {...props} key={index} data={data} />
+  }) : <div>No certificates issued</div>
 
   const isMe = profileId === props.signedAccountId
 
@@ -224,7 +202,7 @@ function ProfilePageCommon (props, tab) {
                     {showSubmitButton ? <button className='btn btn-primary' onClick={(e) => registerAsAuditor(e)}>Register as auditor</button> : loader()}
                     */}
                   </div>)
-                : userAudits}
+                : userCertificates}
             </div>
             {isMe && user && user.auditor &&
               <div className='mb-3 py-2'>

@@ -25,10 +25,10 @@ pub const ISSUE_LEVEL_MAJOR: &str = "Major";
 pub const ISSUE_LEVEL_MEDIUM: &str = "Medium";
 pub const ISSUE_LEVEL_MINOR: &str = "Minor";
 
-pub const REGISTER_PROJECT_DEPOSIT: Balance = 100;
-pub const REGISTER_AUDITOR_DEPOSIT: Balance = 150;
-pub const SIGN_AUDIT_DEPOSIT: Balance = 200;
-pub const CREATE_USER_DEPOSIT: Balance = 250;
+pub const REGISTER_PROJECT_DEPOSIT: Balance = 1;
+pub const REGISTER_AUDITOR_DEPOSIT: Balance = 1;
+pub const SIGN_AUDIT_DEPOSIT: Balance = 1;
+pub const CREATE_USER_DEPOSIT: Balance = 1;
 
 pub type CertificateId = CryptoHash;
 // pub type ContractId = (ProjectId, Version); - unused

@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use crate::*;
 
 #[derive(BorshDeserialize, BorshSerialize)]
@@ -9,6 +7,7 @@ pub struct Certificate {
 
     pub author: UserId,
     pub report_url: Url,
+    pub summary: String,
     pub standards_confirmed: UnorderedSet<Standard>,
 
     pub approved: bool,
@@ -29,6 +28,7 @@ pub struct CertificateView {
 
     pub author: UserId,
     pub report_url: Url,
+    pub summary: String,
     pub standards_confirmed: Vec<Standard>,
 
     pub approved: bool,
@@ -42,6 +42,7 @@ impl From<&Certificate> for CertificateView {
             version: (&c.version).into(),
             author: c.author.clone(),
             report_url: c.report_url.clone(),
+            summary: c.summary.clone(),
             standards_confirmed: c.standards_confirmed.to_vec(),
             approved: c.approved,
             score: c.score,
@@ -55,9 +56,30 @@ impl Global {
         self.certificate_id_to_certificate(&certificate_id)
             .map(|c| (&c).into())
     }
+
+    pub fn get_all_certificates(&self, from: u64, to: u64) -> Vec<CertificateView> {
+        let from = min(from, self.certificate_id_to_contract_hash.len());
+        let to = min(to, self.certificate_id_to_contract_hash.len());
+        // keys_as_vector() should work for O(1)
+        (from..to)
+            .map(|i| {
+                (&self
+                    .certificate_id_to_certificate(
+                        &self
+                            .certificate_id_to_contract_hash
+                            .keys_as_vector()
+                            .get(i)
+                            .unwrap(),
+                    )
+                    .unwrap())
+                    .into()
+            })
+            .collect()
+    }
 }
 
 impl Global {
+    // TODO maybe add a trait CertificateId -> Certificate
     pub(crate) fn certificate_id_to_certificate(
         &self,
         certificate_id: &CertificateId,

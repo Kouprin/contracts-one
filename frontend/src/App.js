@@ -8,6 +8,7 @@ import './App.scss'
 import * as nearAPI from 'near-api-js'
 
 import LandingPage from './pages/Landing'
+import CertificatesPage from './pages/Certificates'
 import ContractPage from './pages/Contract'
 import ProjectsPage from './pages/Projects'
 import ProjectInfoPage from './pages/ProjectInfo'
@@ -20,7 +21,7 @@ const TestNearConfig = {
   accountSuffix: 'testnet',
   networkId: 'testnet',
   nodeUrl: 'https://rpc.testnet.near.org',
-  contractName: 'dev-1618768871022-1312001',
+  contractName: 'dev-1618829758825-5923335',
   walletUrl: 'https://wallet.testnet.near.org'
 }
 const MainNearConfig = {
@@ -77,7 +78,8 @@ class App extends React.Component {
         'get_project_last_version',
         'get_contract_source_code',
         'get_user',
-        'get_auditor_certificates'
+        'get_auditor_certificates',
+        'get_all_certificates'
       ],
       changeMethods: [
         'create_user',
@@ -163,7 +165,7 @@ class App extends React.Component {
                     <Link className='nav-link' aria-current='page' to='/projects'>Projects</Link>
                   </li>
                   <li className='nav-item'>
-                    <Link className='nav-link' aria-current='page' to='/adits'>Audits</Link>
+                    <Link className='nav-link' aria-current='page' to='/certificates'>Certificates</Link>
                   </li>
                   <li className='nav-item'>
                     <Link className='nav-link' aria-current='page' to='/issues'>Issues</Link>
@@ -189,6 +191,12 @@ class App extends React.Component {
             </Route>
             <Route exact path='/projects/:page'>
               <ProjectsPage {...passProps} />
+            </Route>
+            <Route exact path='/certificates'>
+              <CertificatesPage {...passProps} />
+            </Route>
+            <Route exact path='/certificates/:page'>
+              <CertificatesPage {...passProps} />
             </Route>
             <Route exact path='/projectInfo/:projectName'>
               <ProjectInfoPage {...passProps} />

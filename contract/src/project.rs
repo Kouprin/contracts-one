@@ -1,7 +1,3 @@
-use regex::Regex;
-use std::cmp::min;
-use std::convert::TryInto;
-
 use crate::*;
 
 #[derive(BorshDeserialize, BorshSerialize)]
@@ -57,6 +53,9 @@ pub struct ProjectViewLimited {
 
     pub last_version: Option<String>,
     pub last_version_contract_hash: Option<Base58CryptoHash>,
+    pub publisher: Option<String>,
+
+    pub num_contracts: u64,
 
     pub audit_status: String,
 }
@@ -70,6 +69,8 @@ impl From<&Project> for ProjectViewLimited {
                 description: p.description.clone(),
                 last_version: None,
                 last_version_contract_hash: None,
+                publisher: None,
+                num_contracts: 0,
                 audit_status: (&AuditStatus::Unknown).into(),
             },
             |c| Self {
@@ -78,6 +79,8 @@ impl From<&Project> for ProjectViewLimited {
                 description: p.description.clone(),
                 last_version: Some((&c.version).into()),
                 last_version_contract_hash: Some(c.hash.into()),
+                publisher: Some(c.publisher),
+                num_contracts: p.contracts.len(),
                 audit_status: (&c.audit_status).into(),
             },
         )
