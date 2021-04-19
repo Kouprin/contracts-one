@@ -33,7 +33,7 @@ function ProjectsPage (props) {
           <h4 className='py-2 bd-highlight'>
             All Projects
           </h4>
-          <div className='px-4 bd-highlight' />
+          <div className='ms-auto bd-highlight' />
           <Link className={'btn btn-outline-secondary ' + (!props.signedIn ? 'disabled' : '')} to={'/profileProjects/' + props.signedAccountId}>Create new project</Link>
           <div className='px-2 bd-highlight' />
           <Link className={'btn btn-outline-secondary ' + (!props.signedIn ? 'disabled' : '')} to={'/profileProjects/' + props.signedAccountId}>My projects</Link>

@@ -19,6 +19,7 @@ function ProfilePageCommon (props, tab) {
   const [newProjectName, setNewProjectName] = useState('')
   const [newProjectDesc, setNewProjectDesc] = useState('')
   const [formURL, setFormURL] = useState('')
+  const [formSummary, setFormSummary] = useState('')
   const [formCommaSeparated, setFormCommaSeparated] = useState('')
   const [auditHash, setAuditHash] = useState('')
   const [auditRadioSafe, setAuditRadioSafe] = useState(undefined)
@@ -70,6 +71,7 @@ function ProfilePageCommon (props, tab) {
           project_name: contract.project_name,
           version: contract.version,
           report_url: formURL,
+          summary: formSummary,
           standards_confirmed: formCommaSeparated.split(/[ ,]+/),
           approved: auditRadioSafe,
           score: auditRating === undefined ? null : parseInt(auditRating)
@@ -104,7 +106,7 @@ function ProfilePageCommon (props, tab) {
 
   const userCertificates = certificates && certificates.length > 0 ? certificates.map((data, index) => {
     return <CertificateCard {...props} key={index} data={data} />
-  }) : <div>No certificates issued</div>
+  }) : <div>No certificates found</div>
 
   const isMe = profileId === props.signedAccountId
 
@@ -120,7 +122,7 @@ function ProfilePageCommon (props, tab) {
             <h5 className='gray'>{profileId}</h5>
           </div>
 
-          <div className='px-4 bd-highlight' />
+          <div className='ms-auto bd-highlight' />
           {isMe
             ? <button className='btn btn-outline-secondary' onClick={() => props._near.logOut()}>Sign out</button>
             : <div />}
@@ -222,6 +224,11 @@ function ProfilePageCommon (props, tab) {
                       <input
                         type='text' className='form-control mt-2'
                         placeholder='Example: github.com/near' onChange={(e) => setFormURL(e.target.value)}
+                      />
+                      <label className='mt-3'>Summary</label>
+                      <textarea
+                        rows='4' className='form-control mt-2'
+                        placeholder='Example: Fifteen critical and eight high severity issues were found, along with recommendations on how to fix them. Additionally, some medium and lower severity issues were found and explained. Some changes were proposed to follow best practices and reduce the potential attack surface.' onChange={(e) => setFormSummary(e.target.value)}
                       />
                       <label className='mt-3'>Standards, comma-separated, optional</label>
                       <input

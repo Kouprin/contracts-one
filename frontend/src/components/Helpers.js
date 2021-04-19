@@ -39,6 +39,7 @@ const mapCertificateView = (c) => {
     version: c.version,
     author: c.author,
     reportUrl: c.report_url,
+    summary: c.summary,
     standardsConfirmed: c.standards_confirmed,
     approved: c.approved,
     score: c.score

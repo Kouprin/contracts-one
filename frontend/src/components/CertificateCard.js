@@ -25,10 +25,10 @@ function CertificateCard (props) {
           <big className='card-title'><small className='gray'>verdict:</small> {certificate.approved ? 'approved' : 'refused'}</big>
         </div>
         <div className='d-flex flex-row card-text'>
-          <div className='flex-grow-1 d-flex flex-row'>
-            <div className='card-text'>Summary: <span className='gray'>{certificate.summary}bla</span></div>
+          <div className='w-75'>
+            <div className='card-text gray'>{certificate.summary}</div>
           </div>
-          <div className='ms-3 align-bottom '>
+          <div className='ms-auto'>
             <a href={'//' + certificate.reportUrl} className='btn btn-secondary'>Go to report</a>
           </div>
         </div>

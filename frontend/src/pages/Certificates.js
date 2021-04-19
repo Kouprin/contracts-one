@@ -32,7 +32,7 @@ function CertificatesPage (props) {
           <h4 className='py-2 bd-highlight'>
             All Certificates
           </h4>
-          <div className='px-4 bd-highlight' />
+          <div className='ms-auto bd-highlight' />
           <Link className={'btn btn-outline-secondary ' + (!props.signedIn ? 'disabled' : '')} to={'/profileAudits/' + props.signedAccountId}>Submit new audit</Link>
           <div className='px-2 bd-highlight' />
           <Link className={'btn btn-outline-secondary ' + (!props.signedIn ? 'disabled' : '')} to={'/profileAudits/' + props.signedAccountId}>My audits</Link>
