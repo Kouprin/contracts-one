@@ -213,7 +213,8 @@ impl State {
                 "summary".to_string(),
                 vec!["boom".to_string()],
                 true,
-                Some(6)
+                true,
+                6
             ),
             deposit = SIGN_AUDIT_DEPOSIT
         );

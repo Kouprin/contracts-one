@@ -11,6 +11,8 @@ pub const ERR_ALREADY_EXISTS: &str = "Already exists";
 pub const ERR_ACCESS_DENIED: &str = "Caller is not allowed to do this operation";
 pub const ERR_PROJECT_CREATOR_IS_NOT_OWNER: &str =
     "Project creator is not in list of project owners";
+pub const ERR_TEXT_TOO_LONG: &str = "Text field is limited for MAX_TEXT_LENGTH symbols";
+pub const ERR_INVALID_SCORE: &str = "The score is invalid";
 
 pub const SAFETY_LEVEL_LOW: &str = "Low";
 pub const SAFETY_LEVEL_LOW_EXPLANATION: &str = "The contract hasn't been audited or audits don't approve safety of the contract. Use it on you own risk.";
@@ -29,6 +31,8 @@ pub const REGISTER_PROJECT_DEPOSIT: Balance = 1;
 pub const REGISTER_AUDITOR_DEPOSIT: Balance = 1;
 pub const SIGN_AUDIT_DEPOSIT: Balance = 1;
 pub const CREATE_USER_DEPOSIT: Balance = 1;
+
+pub const MAX_TEXT_LENGTH: usize = 1023;
 
 pub type CertificateId = CryptoHash;
 // pub type ContractId = (ProjectId, Version); - unused

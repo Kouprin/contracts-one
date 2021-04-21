@@ -159,13 +159,13 @@ impl Global {
         let mut yes = 0;
         let mut no = 0;
         for (_, certificate) in contract.certificates.iter() {
-            if certificate.approved {
+            if certificate.contract_approved && certificate.basic_validity_passed {
                 yes += 1;
             } else {
                 no += 1;
             }
         }
-        if yes == 0 {
+        if yes == 0 || no > yes {
             return SafetyReport::low();
         }
         if no == 0 {

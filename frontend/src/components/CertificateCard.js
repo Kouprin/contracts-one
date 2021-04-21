@@ -22,7 +22,8 @@ function CertificateCard (props) {
           <div className='card-title gray pe-3'>by <ProfileLink userName={certificate.author} /></div>
           <div className='me-auto card-title'>{standards}</div>
           <big className='pe-3 card-title'><small className='gray'>score:</small> {certificate.score}</big>
-          <big className='card-title'><small className='gray'>verdict:</small> {certificate.approved ? 'approved' : 'refused'}</big>
+          <big className='pe-3 card-title'><small className='gray'>basic validity:</small> {certificate.basicValidityPassed ? 'passed' : 'failed'}</big>
+          <big className='card-title'><small className='gray'>audit verdict:</small> {certificate.contractApproved ? 'approved' : 'refused'}</big>
         </div>
         <div className='d-flex flex-row card-text'>
           <div className='w-75'>

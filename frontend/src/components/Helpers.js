@@ -41,14 +41,15 @@ const mapCertificateView = (c) => {
     reportUrl: c.report_url,
     summary: c.summary,
     standardsConfirmed: c.standards_confirmed,
-    approved: c.approved,
+    basicValidityPassed: c.basic_validity_passed,
+    contractApproved: c.contract_approved,
     score: c.score
   } : null
 }
 
 // TODO
 const mapContract = (c) => {
-  return c || {}
+  return c || null
 }
 
 // TODO

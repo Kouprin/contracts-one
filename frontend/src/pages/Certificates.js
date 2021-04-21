@@ -37,7 +37,7 @@ function CertificatesPage (props) {
           <div className='px-2 bd-highlight' />
           <Link className={'btn btn-outline-secondary ' + (!props.signedIn ? 'disabled' : '')} to={'/profileAudits/' + props.signedAccountId}>My audits</Link>
           <div className='px-2 bd-highlight' />
-          <Link className={'btn btn-outline-primary ' + (!props.signedIn ? 'disabled' : '')} to={'/profileAudits/' + props.signedAccountId}>Request an audit</Link>
+          <Link className={'btn btn-outline-primary disabled ' + (!props.signedIn ? 'disabled' : '')} to={'/profileAudits/' + props.signedAccountId}>Request an audit</Link>
         </div>
       </div>
       <div className='container g-0 px-5'>

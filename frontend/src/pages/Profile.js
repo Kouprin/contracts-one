@@ -22,7 +22,8 @@ function ProfilePageCommon (props, tab) {
   const [formSummary, setFormSummary] = useState('')
   const [formCommaSeparated, setFormCommaSeparated] = useState('')
   const [auditHash, setAuditHash] = useState('')
-  const [auditRadioSafe, setAuditRadioSafe] = useState(undefined)
+  const [auditRadioBasicValidity, setAuditRadioBasicValidity] = useState(undefined)
+  const [auditRadioApprove, setAuditRadioApprove] = useState(undefined)
   const [auditRating, setAuditRating] = useState(undefined)
 
   async function submitNewProject (e) {
@@ -73,8 +74,9 @@ function ProfilePageCommon (props, tab) {
           report_url: formURL,
           summary: formSummary,
           standards_confirmed: formCommaSeparated.split(/[ ,]+/),
-          approved: auditRadioSafe,
-          score: auditRating === undefined ? null : parseInt(auditRating)
+          basic_validity_passed: auditRadioBasicValidity,
+          contract_approved: auditRadioApprove,
+          score: parseInt(auditRating)
         }, '200000000000000', '1')
       // TODO
       window.location.href = '#/contract/' + auditHash
@@ -196,7 +198,7 @@ function ProfilePageCommon (props, tab) {
               {user && !user.auditor
                 ? (
                   <div>
-                    <h4>Not an auditor. Contact to devs to register as auditor.</h4>
+                    <h5>Not an auditor. Contact to devs to register as auditor</h5>
                     {/*
                     TODO
                     <h4>Not an auditor. Register?</h4>
@@ -211,6 +213,7 @@ function ProfilePageCommon (props, tab) {
                 <hr />
                 <h4>Submit an audit</h4>
                 <form onSubmit={(e) => submitNewAudit(e)}>
+                  <small>// 5suuACmAzbTj8oyv4bQUjuJZbRinGMAKMLorDDEFzu4a - quick example</small>
                   <div className='d-flex align-items-center justify-content-center'>
                     <div className='form-group' style={{ width: '600px', margin: '25px' }}>
                       <label className='mt-3'>Contract hash</label>
@@ -218,38 +221,70 @@ function ProfilePageCommon (props, tab) {
                         type='text' className='form-control mt-2'
                         placeholder='Example: 55E7imniT2uuYrECn17qJAk9fLcwQW4ftNSwmCJL5Di' onChange={(e) => setAuditHash(e.target.value)}
                       />
-                      <div className='mt-3'>Project: {contract && contract.project_name ? contract.project_name : '(unknown)'}</div>
-                      <div className='mt-1'>Version: {contract && contract.version ? contract.version : '(unknown)'}</div>
-                      <label className='mt-3'>Report URL</label>
+                      <div className='mt-3' />
+                      <div className='d-flex align-items-center justify-content-center'>
+                        {!contract
+                          ? <small className='me-auto'>Nothing found</small> : <small className='me-auto'>Found</small>}
+                        {contract &&
+                          <small className='gray me-3'>Project: {contract.project_name}</small>}
+                        {contract &&
+                          <small className='gray'>Version: {contract.version}</small>}
+                      </div>
+
+                      <div />
+
+                      <div className='mt-3' />
+                      <label>Report URL</label>
                       <input
                         type='text' className='form-control mt-2'
                         placeholder='Example: github.com/near' onChange={(e) => setFormURL(e.target.value)}
                       />
-                      <label className='mt-3'>Summary</label>
+                      <div className='mt-3' />
+                      <label>Summary, 255 symbols max</label>
                       <textarea
                         rows='4' className='form-control mt-2'
                         placeholder='Example: Fifteen critical and eight high severity issues were found, along with recommendations on how to fix them. Additionally, some medium and lower severity issues were found and explained. Some changes were proposed to follow best practices and reduce the potential attack surface.' onChange={(e) => setFormSummary(e.target.value)}
                       />
-                      <label className='mt-3'>Standards, comma-separated, optional</label>
+                      <div className='mt-3' />
+                      <label>Standards, comma-separated, optional</label>
                       <input
                         type='text' className='form-control mt-2'
                         placeholder='Example: FOO-16, BAR-141' onChange={(e) => setFormCommaSeparated(e.target.value)}
                       />
-                      <label className='mt-3 mb-2'>Audit verdict</label>
+                      <small className='gray'>Leave blank if no standards are confirmed</small>
+                      <div className='mt-3' />
+                      <label>Basic contract validity verdict</label>
+                      <div className='mt-1' />
                       <div className='form-check'>
-                        <input className='form-check-input' type='radio' name='flexRadioDefault' onChange={(e) => setAuditRadioSafe(true)} />
-                        <label className='form-check-label'>The contract is safe</label>
+                        <input className='form-check-input' type='radio' name='flexRadioDefault1' onChange={(e) => setAuditRadioBasicValidity(true)} />
+                        <label className='form-check-label small'>I confirm the source code of the contract has been downloaded from the Blockchain and it has been compiled into <samp className='small'>{auditHash}</samp></label>
                       </div>
                       <div className='form-check'>
-                        <input className='form-check-input' type='radio' name='flexRadioDefault' onChange={(e) => setAuditRadioSafe(false)} />
-                        <label className='form-check-label'>The contract is NOT safe</label>
+                        <input className='form-check-input' type='radio' name='flexRadioDefault1' onChange={(e) => setAuditRadioBasicValidity(false)} />
+                        <label className='form-check-label small'>The condition above is false</label>
                       </div>
-                      <label className='mt-3'>Contract quality rating, integer in range [1..10], optional</label>
+                      <small className='gray'>This mark corresponds to basic contract validity knowledge at <u>contracts.one</u>. If you have audited NOT an open source code, please mark the condition above as false and go to the next question.</small>
+                      <div className='mt-3' />
+                      <label>General contract audit verdict</label>
+                      <div className='mt-1' />
+                      <div className='form-check'>
+                        <input className='form-check-input' type='radio' name='flexRadioDefault2' onChange={(e) => setAuditRadioApprove(true)} />
+                        <label className='form-check-label small'>I confirm the source code of the contract is considered safe and can be used by anyone in any way without risks of potential funding losses</label>
+                      </div>
+                      <div className='form-check'>
+                        <input className='form-check-input' type='radio' name='flexRadioDefault2' onChange={(e) => setAuditRadioApprove(false)} />
+                        <label className='form-check-label small'>The condition above is false</label>
+                      </div>
+                      <small className='gray'>If the contract has dangerous flaws, please mark the condition above as false. Then the contract must be updated by the developer and uploaded under a new version. Please make sure that your report is reachable by URL and explains clearly the flaws.</small>
+                      <div className='mt-3' />
+                      <label>Overall contract quality rating, integer in range [1..10]</label>
                       <input
                         type='text' className='form-control mt-2'
                         placeholder='Example: 7' onChange={(e) => setAuditRating(e.target.value)}
                       />
-                      {showSubmitButton ? <button className='btn btn-outline-primary mt-5' disabled={!contract || !formURL || auditRadioSafe === undefined}>Submit an audit</button> : loader()}
+                      <small className='gray'>Even in case of having dangerous flaws, the overall code quality may be very good. This score is mostly about your subjective understanding of how good the code is organized and structured, how easy to get into details, etc.</small>
+                      <div className='mt-3' />
+                      {showSubmitButton ? <button className='btn btn-outline-primary' disabled={!contract || !formURL || auditRadioBasicValidity === undefined || auditRadioApprove === undefined || !auditRating}>Submit an audit</button> : loader()}
                     </div>
                   </div>
                 </form>

@@ -10,8 +10,9 @@ pub struct Certificate {
     pub summary: String,
     pub standards_confirmed: UnorderedSet<Standard>,
 
-    pub approved: bool,
-    pub score: Option<u64>,
+    pub basic_validity_passed: bool,
+    pub contract_approved: bool,
+    pub score: u64,
 }
 
 impl Certificate {
@@ -31,8 +32,9 @@ pub struct CertificateView {
     pub summary: String,
     pub standards_confirmed: Vec<Standard>,
 
-    pub approved: bool,
-    pub score: Option<u64>,
+    pub basic_validity_passed: bool,
+    pub contract_approved: bool,
+    pub score: u64,
 }
 
 impl From<&Certificate> for CertificateView {
@@ -44,7 +46,8 @@ impl From<&Certificate> for CertificateView {
             report_url: c.report_url.clone(),
             summary: c.summary.clone(),
             standards_confirmed: c.standards_confirmed.to_vec(),
-            approved: c.approved,
+            basic_validity_passed: c.basic_validity_passed,
+            contract_approved: c.contract_approved,
             score: c.score,
         }
     }

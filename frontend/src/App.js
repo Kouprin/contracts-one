@@ -21,7 +21,7 @@ const TestNearConfig = {
   accountSuffix: 'testnet',
   networkId: 'testnet',
   nodeUrl: 'https://rpc.testnet.near.org',
-  contractName: 'dev-1618829758825-5923335',
+  contractName: 'dev-1618917933127-5935675',
   walletUrl: 'https://wallet.testnet.near.org'
 }
 const MainNearConfig = {
@@ -169,9 +169,6 @@ class App extends React.Component {
                   </li>
                   <li className='nav-item'>
                     <Link className='nav-link' aria-current='page' to='/issues'>Issues</Link>
-                  </li>
-                  <li className='nav-item'>
-                    <Link className='nav-link' aria-current='page' to='/tasks'>Tasks</Link>
                   </li>
                 </ul>
                 <form className='d-flex'>

@@ -94,8 +94,9 @@ impl Global {
         report_url: Url,
         summary: String,
         standards_confirmed: Vec<Standard>,
-        approved: bool,
-        score: Option<u64>,
+        basic_validity_passed: bool,
+        contract_approved: bool,
+        score: u64,
     ) -> bool {
         assert!(
             env::attached_deposit() >= SIGN_AUDIT_DEPOSIT,
@@ -107,6 +108,9 @@ impl Global {
             "{}",
             ERR_NOT_AN_AUDITOR
         );
+        assert!(summary.len() <= MAX_TEXT_LENGTH, "{}, MAX_TEXT_LENGTH = {}", ERR_TEXT_TOO_LONG, MAX_TEXT_LENGTH);
+        assert!(1 <= score && score <= 10, "{}", ERR_INVALID_SCORE);
+
         let version: Version = (&version).into();
         let certificate_id = env::sha256(report_url.as_bytes());
         let mut project = self.extract_project_by_name_or_panic(&project_name);
@@ -125,7 +129,8 @@ impl Global {
             report_url,
             summary,
             standards_confirmed: standards_confirmed_set,
-            approved,
+            basic_validity_passed,
+            contract_approved,
             score,
         };
 
