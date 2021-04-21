@@ -5,7 +5,7 @@ import useSWR from 'swr'
 
 import { CertificateCard } from '../components/CertificateCard'
 import { ProjectCard } from '../components/ProjectCard'
-import { mapContract, loader, mapProjectViewLimited, getBgByStatus } from '../components/Helpers'
+import { mapContract, loader } from '../components/Helpers'
 
 const tabs = {
   STATS: 'stats',

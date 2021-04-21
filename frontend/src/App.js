@@ -162,13 +162,16 @@ class App extends React.Component {
               <div className='collapse navbar-collapse' id='navbarSupportedContent'>
                 <ul className='navbar-nav me-auto mb-2 mb-lg-0'>
                   <li className='nav-item'>
+                    <Link className='nav-link' aria-current='page' to='/'>Search</Link>
+                  </li>
+                  <li className='nav-item'>
                     <Link className='nav-link' aria-current='page' to='/projects'>Projects</Link>
                   </li>
                   <li className='nav-item'>
                     <Link className='nav-link' aria-current='page' to='/certificates'>Certificates</Link>
                   </li>
                   <li className='nav-item'>
-                    <Link className='nav-link' aria-current='page' to='/issues'>Issues</Link>
+                    <Link className='nav-link' aria-current='page' to='/issues'>Issues (in progress)</Link>
                   </li>
                 </ul>
                 <form className='d-flex'>
