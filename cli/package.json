@@ -1,0 +1,25 @@
+{
+  "name": "contracts-one-cli",
+  "version": "1.0.0",
+  "author": "Alex Kouprin <kpr@near.org>",
+  "description": "CLI for developers and auditors",
+  "main": "index.js",
+  "bin": {
+    "contracts-one": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kouprin/contracts-one.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "nearprotocol",
+    "decentralized",
+    "blockchain"
+  ],
+  "dependencies": {
+    "bs58": "^4.0.1",
+    "commander": "^5.1.0",
+    "tar": "^6.1.0"
+  }
+}
