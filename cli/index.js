@@ -7,6 +7,8 @@ const path = require('path')
 const tar = require('tar')
 const realZlibConstants = require('zlib').constants
 
+const { nearContractView } = require('./near')
+
 program.version(require('./package.json').version)
 
 program
@@ -70,6 +72,23 @@ program
     const hash = crypto.createHash('sha256').update(bytes).digest('hex')
     const bs58encoded = bs58.encode(Buffer.from(hash, 'hex'))
     console.log(bs58encoded)
+  })
+
+const nearCommand = program
+  .command('near [options]')
+  .description('operations with NEAR blockchain')
+
+nearCommand
+  .command('source <code-hash> <filename>')
+  .description('download source code of the contract by given hash as the file')
+  .action(async (codeHash, filename) => {
+    // TODO use env variable
+    const env = 'testnet'
+    const contract = await nearContractView(env)
+    console.log(contract)
+    const response = await contract.get_contract_source_code({ contract_hash: codeHash })
+    fs.writeFileSync(filename, response)
+    console.log('done')
   })
 
 ;(async () => {

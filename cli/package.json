@@ -20,6 +20,7 @@
   "dependencies": {
     "bs58": "^4.0.1",
     "commander": "^5.1.0",
+    "near-api-js": "^0.39.0",
     "tar": "^6.1.0"
   }
 }
