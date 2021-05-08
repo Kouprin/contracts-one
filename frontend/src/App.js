@@ -9,6 +9,7 @@ import * as nearAPI from 'near-api-js'
 
 import LandingPage from './pages/Landing'
 import CertificatesPage from './pages/Certificates'
+import CLIPage from './pages/CLI'
 import ContractPage from './pages/Contract'
 import ProjectsPage from './pages/Projects'
 import ProjectInfoPage from './pages/ProjectInfo'
@@ -171,7 +172,7 @@ class App extends React.Component {
                     <Link className='nav-link' aria-current='page' to='/certificates'>Certificates</Link>
                   </li>
                   <li className='nav-item'>
-                    <Link className='nav-link' aria-current='page' to='/issues'>Issues (in progress)</Link>
+                    <Link className='nav-link' aria-current='page' to='/cli'>CLI</Link>
                   </li>
                 </ul>
                 <form className='d-flex'>
@@ -197,6 +198,9 @@ class App extends React.Component {
             </Route>
             <Route exact path='/certificates/:page'>
               <CertificatesPage {...passProps} />
+            </Route>
+            <Route exact path='/cli'>
+              <CLIPage {...passProps} />
             </Route>
             <Route exact path='/projectInfo/:projectName'>
               <ProjectInfoPage {...passProps} />

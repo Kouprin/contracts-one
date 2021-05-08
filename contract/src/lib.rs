@@ -2,8 +2,7 @@ use regex::Regex;
 use std::cmp::min;
 use std::convert::TryInto;
 
-mod auditor;
-mod certificate;
+mod audit;
 mod contract;
 mod issue;
 mod primitives;
@@ -11,8 +10,7 @@ mod project;
 mod user;
 mod version;
 
-pub use crate::auditor::*;
-pub use crate::certificate::*;
+pub use crate::audit::*;
 pub use crate::contract::*;
 pub use crate::issue::*;
 pub use crate::primitives::*;
@@ -21,38 +19,33 @@ pub use crate::user::*;
 pub use crate::version::*;
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{TreeMap, UnorderedMap, UnorderedSet};
-use near_sdk::json_types::{Base58CryptoHash, ValidAccountId, WrappedTimestamp};
+use near_sdk::collections::{LookupMap, TreeMap, UnorderedMap, UnorderedSet};
+use near_sdk::json_types::{Base58CryptoHash, Base58PublicKey, ValidAccountId, WrappedTimestamp};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near_bindgen, AccountId, Balance, CryptoHash, PanicOnDefault, Timestamp};
+use near_sdk::{
+    env, near_bindgen, AccountId, Balance, CryptoHash, PanicOnDefault, PublicKey, Timestamp,
+};
 
 near_sdk::setup_alloc!();
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
-pub struct Global {
+pub struct Main {
     pub projects: UnorderedMap<ProjectId, Project>,
-    pub contract_hash_to_contract_id: UnorderedMap<ContractHash, (ProjectId, Version)>,
-
-    pub users: UnorderedMap<UserId, User>,
-    pub auditors: UnorderedSet<UserId>,
-    pub certificate_id_to_contract_hash: UnorderedMap<CertificateId, ContractHash>,
+    pub contracts: TreeMap<ContractHash, Contract>,
 
     pub owner_id: AccountId,
     pub dao_id: AccountId,
 }
 
 #[near_bindgen]
-impl Global {
+impl Main {
     #[init]
     pub fn test_new() -> Self {
         assert!(!env::state_exists(), "Already initialized");
         Self {
             projects: UnorderedMap::new(b"a".to_vec()),
-            contract_hash_to_contract_id: UnorderedMap::new(b"b".to_vec()),
-            users: UnorderedMap::new(b"d".to_vec()),
-            auditors: UnorderedSet::new(b"e".to_vec()),
-            certificate_id_to_contract_hash: UnorderedMap::new(b"f".to_vec()),
+            contracts: TreeMap::new(b"b".to_vec()),
             owner_id: env::signer_account_id(),
             dao_id: env::signer_account_id(),
         }
@@ -63,12 +56,23 @@ impl Global {
         assert!(!env::state_exists(), "Already initialized");
         Self {
             projects: UnorderedMap::new(b"a".to_vec()),
-            contract_hash_to_contract_id: UnorderedMap::new(b"b".to_vec()),
-            users: UnorderedMap::new(b"d".to_vec()),
-            auditors: UnorderedSet::new(b"e".to_vec()),
-            certificate_id_to_contract_hash: UnorderedMap::new(b"f".to_vec()),
+            contracts: TreeMap::new(b"b".to_vec()),
             owner_id: owner_id.into(),
             dao_id: dao_id.into(),
         }
+    }
+}
+
+impl Main {
+    pub(crate) fn users() -> LookupMap<UserId, User> {
+        LookupMap::new(b"c".to_vec())
+    }
+
+    pub(crate) fn audits() -> LookupMap<AuditId, Audit> {
+        LookupMap::new(b"d".to_vec())
+    }
+
+    pub(crate) fn contract_hash_to_contract_id() -> LookupMap<ContractHash, (ProjectId, Version)> {
+        LookupMap::new(b"e".to_vec())
     }
 }

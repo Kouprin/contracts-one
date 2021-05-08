@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 
 /// Import the generated proxy contract
-use contracts_one::GlobalContract as COContract;
+use contracts_one::MainContract;
 use contracts_one::{
     ContractView, ProjectView, ProjectViewLimited, UserView, CREATE_USER_DEPOSIT,
     ERR_ACCESS_DENIED, ERR_NOT_AN_AUDITOR, ERR_PROJECT_NAME_INVALID, REGISTER_AUDITOR_DEPOSIT,
@@ -10,6 +10,7 @@ use contracts_one::{
 };
 
 use near_sdk::json_types::Base58CryptoHash;
+use near_sdk::Timestamp;
 use near_sdk_sim::{call, deploy, init_simulator, to_yocto, view, ContractAccount, UserAccount};
 
 // Load in contract bytes at runtime
@@ -35,7 +36,7 @@ const DEFAULT_PROJECT_OWNERS: &[&'static str; 3] = &["root", ALICE, BOB];
 
 struct State {
     pub root: UserAccount,
-    pub contract: ContractAccount<COContract>,
+    pub contract: ContractAccount<MainContract>,
     pub accounts: HashMap<String, UserAccount>,
 }
 
@@ -44,7 +45,7 @@ impl State {
         let root = init_simulator(None);
 
         let deployed_contract = deploy!(
-            contract: COContract,
+            contract: MainContract,
             contract_id: CONTRACT_ID,
             bytes: &CONTRACT_WASM_BYTES,
             signer_account: root,
@@ -57,7 +58,6 @@ impl State {
             accounts: HashMap::default(),
         };
         state.do_create_user(&state.root.account_id(), None);
-        state.do_register_auditor(&state.root.account_id(), None);
         state
     }
 
@@ -97,6 +97,7 @@ impl State {
 
     pub fn do_register_project(&self, name: &str, owners: &[&str], err: Option<&str>) {
         let contract = &self.contract;
+
         let outcome = call!(
             self.root,
             contract.register_project(
@@ -140,6 +141,7 @@ impl State {
                 hash.try_into().unwrap(),
                 version.to_string(),
                 "source code".to_string(),
+                "default sha-1".to_string(),
                 DEFAULT_STANDARDS_DECLARED
             ),
             deposit = REGISTER_PROJECT_DEPOSIT
@@ -175,46 +177,26 @@ impl State {
         }
     }
 
-    fn do_register_auditor(&self, account_name: &str, err: Option<&str>) {
-        let contract = &self.contract;
-        let outcome = call!(
-            self.root,
-            contract.register_auditor(account_name.try_into().unwrap(), "description".into()),
-            deposit = REGISTER_AUDITOR_DEPOSIT
-        );
-        if let Some(msg) = err {
-            assert!(
-                format!("{:?}", outcome.status()).contains(msg),
-                "received {:?}",
-                outcome.status()
-            );
-            assert!(!outcome.is_ok(), "Should panic");
-        } else {
-            outcome.assert_success();
-        }
-    }
-
-    fn do_sign_audit(
+    fn do_submit_audit(
         &self,
         account_name: &str,
-        project_id: &str,
-        version: &str,
-        url: &str,
+        contract_hash: &str,
+        auditor_url: &str,
+        report_url: &str,
+        summary: &str,
+        date: Timestamp,
         err: Option<&str>,
     ) {
         let contract = &self.contract;
         let account = self.accounts.get(account_name).unwrap();
         let outcome = call!(
             account,
-            contract.sign_audit(
-                project_id.to_string(),
-                version.to_string(),
-                url.to_string(),
-                "summary".to_string(),
-                vec!["boom".to_string()],
-                true,
-                true,
-                6
+            contract.submit_audit(
+                contract_hash.try_into().unwrap(),
+                auditor_url.to_string(),
+                report_url.to_string(),
+                summary.to_string(),
+                date.into()
             ),
             deposit = SIGN_AUDIT_DEPOSIT
         );
@@ -344,80 +326,4 @@ fn reproduce_1() {
         ver,
         &state.get_project("contract.one_test").contracts[0].version
     );
-}
-
-#[test]
-fn sign_audit_collect_all_errors() {
-    let mut state = State::new();
-    state.create_alice();
-
-    state.do_sign_audit(
-        ALICE,
-        DEFAULT_PROJECT_ID,
-        DEFAULT_VERSION,
-        DEFAULT_URL,
-        Some(ERR_NOT_AN_AUDITOR),
-    );
-    state.do_register_auditor(ALICE, ERR_UNWRAP);
-    state.do_create_user(ALICE, None);
-
-    state.do_sign_audit(
-        ALICE,
-        DEFAULT_PROJECT_ID,
-        DEFAULT_VERSION,
-        DEFAULT_URL,
-        Some(ERR_NOT_AN_AUDITOR),
-    );
-    state.do_register_auditor(ALICE, None);
-
-    state.do_sign_audit(
-        ALICE,
-        DEFAULT_PROJECT_ID,
-        DEFAULT_VERSION,
-        DEFAULT_URL,
-        ERR_UNWRAP,
-    );
-
-    state.do_register_project(DEFAULT_PROJECT_ID, DEFAULT_PROJECT_OWNERS, None);
-    state.do_register_contract(
-        ALICE,
-        DEFAULT_PROJECT_ID,
-        DEFAULT_CONTRACT_HASH,
-        DEFAULT_VERSION,
-        None,
-    );
-
-    state.do_sign_audit(
-        ALICE,
-        DEFAULT_PROJECT_ID,
-        DEFAULT_VERSION,
-        DEFAULT_URL,
-        None,
-    );
-
-    state.do_sign_audit(
-        ALICE,
-        DEFAULT_PROJECT_ID,
-        DEFAULT_VERSION,
-        DEFAULT_URL,
-        ERR_ASSERT,
-    );
-
-    state.do_sign_audit(
-        ALICE,
-        DEFAULT_PROJECT_ID,
-        DEFAULT_VERSION,
-        "another url for same auditor, project and contract version",
-        ERR_ASSERT,
-    );
-
-    state.do_sign_audit(
-        ALICE,
-        DEFAULT_PROJECT_ID,
-        "123.456.789",
-        "url - no such version",
-        ERR_UNWRAP,
-    );
-
-    state.validate();
 }

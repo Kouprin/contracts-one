@@ -24,7 +24,7 @@ pub struct ProjectView {
 
     pub contracts: Vec<ContractView>,
 
-    pub audit_status: String,
+    pub council_approved: Option<AccountId>,
 }
 
 impl From<&Project> for ProjectView {
@@ -36,9 +36,9 @@ impl From<&Project> for ProjectView {
             url: p.url.clone(),
             owners: p.owners.to_vec(),
             contracts: p.contracts.iter().map(|(_, c)| (&c).into()).collect(),
-            audit_status: p
+            council_approved: p
                 .view_last_contract()
-                .map_or((&AuditStatus::Unknown).into(), |c| (&c.audit_status).into()),
+                .map_or(None, |c| c.council_approved.into()),
         }
     }
 }
@@ -57,7 +57,7 @@ pub struct ProjectViewLimited {
 
     pub num_contracts: u64,
 
-    pub audit_status: String,
+    pub council_approved: Option<AccountId>,
 }
 
 impl From<&Project> for ProjectViewLimited {
@@ -71,7 +71,7 @@ impl From<&Project> for ProjectViewLimited {
                 last_version_contract_hash: None,
                 publisher: None,
                 num_contracts: 0,
-                audit_status: (&AuditStatus::Unknown).into(),
+                council_approved: None,
             },
             |c| Self {
                 project_id: Project::get_id(&p.project_name).into(),
@@ -81,7 +81,7 @@ impl From<&Project> for ProjectViewLimited {
                 last_version_contract_hash: Some(c.hash.into()),
                 publisher: Some(c.publisher),
                 num_contracts: p.contracts.len(),
-                audit_status: (&c.audit_status).into(),
+                council_approved: c.council_approved.into(),
             },
         )
     }
@@ -110,7 +110,7 @@ impl Project {
 }
 
 #[near_bindgen]
-impl Global {
+impl Main {
     pub fn get_project(&self, project_name: String) -> Option<ProjectView> {
         self.projects
             .get(&Project::get_id(&project_name))
@@ -195,7 +195,7 @@ impl Global {
     }
 }
 
-impl Global {
+impl Main {
     pub(crate) fn extract_project_or_panic(&mut self, project_id: &ProjectId) -> Project {
         self.projects.remove(project_id).unwrap()
     }

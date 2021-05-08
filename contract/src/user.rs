@@ -2,47 +2,41 @@ use crate::*;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct User {
-    pub reputation: u64,
-
     pub projects_owned: UnorderedSet<ProjectId>,
 
-    pub auditor: Option<Auditor>,
+    pub public_key: Option<PublicKey>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct UserView {
-    pub reputation: u64,
-
     pub projects_owned: Vec<ProjectViewLimited>,
 
-    pub auditor: Option<AuditorView>,
+    pub public_key: Option<Base58PublicKey>,
 }
 
-impl From<&User> for UserView {
-    fn from(u: &User) -> Self {
+impl From<(&User, &Main)> for UserView {
+    fn from(u: (&User, &Main)) -> Self {
         Self {
-            reputation: u.reputation,
-            projects_owned: u
-                .projects_owned
-                .iter()
-                .map(|id| (&id.read_from_state()).into())
-                .collect(),
-            auditor: u.auditor.as_ref().map(|a| a.into()),
+            projects_owned: u.0.projects_owned
+            .iter()
+            .map(|id| (&u.1.projects.get(&id).unwrap()).into())
+            .collect(),
+            public_key: u.0.public_key.clone().map(|k| k.try_into().unwrap()),
         }
     }
 }
 
 #[near_bindgen]
-impl Global {
+impl Main {
     pub fn get_user(&self, user_id: ValidAccountId) -> Option<UserView> {
-        self.users.get(user_id.as_ref()).map(|u| (&u).into())
+        Self::users().get(user_id.as_ref()).map(|u| (&u, self).into())
     }
 
     #[payable]
     pub fn create_user(&mut self, user_id: ValidAccountId) -> bool {
         assert!(
-            self.users.get(user_id.as_ref()).is_none(),
+            Self::users().get(user_id.as_ref()).is_none(),
             "{}",
             ERR_ALREADY_EXISTS
         );
@@ -51,34 +45,27 @@ impl Global {
 
         true
     }
-
-    #[payable]
-    pub fn submit_audit_feedback(&mut self, _certificate_id: CertificateId) -> bool {
-        // TODO
-        true
-    }
 }
 
-impl Global {
+impl Main {
     pub(crate) fn extract_user_or_create(&mut self, user_id: &UserId) -> User {
-        self.users.remove(&user_id).unwrap_or_else(|| {
+        Self::users().remove(&user_id).unwrap_or_else(|| {
             let mut prefix = Vec::with_capacity(33);
             prefix.push(b'u');
             prefix.extend(env::sha256(&user_id.as_bytes()));
 
             User {
-                reputation: 0,
                 projects_owned: UnorderedSet::new(prefix),
-                auditor: None,
+                public_key: None,
             }
         })
     }
 
     pub(crate) fn extract_user_or_panic(&mut self, user_id: &UserId) -> User {
-        self.users.remove(&user_id).unwrap()
+        Self::users().remove(&user_id).unwrap()
     }
 
     pub(crate) fn save_user_or_panic(&mut self, user_id: &UserId, user: &User) {
-        assert!(self.users.insert(user_id, user).is_none());
+        assert!(Self::users().insert(user_id, user).is_none());
     }
 }

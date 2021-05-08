@@ -13,15 +13,15 @@ pub struct Contract {
     // Cargo.toml + Cargo.lock + src folder?
     // Full marketplace contract + tests took 30k, 0.3 NEAR
     pub source_code_archived: String,
+    pub commit_hash: String,
 
     pub publisher: UserId,
 
     pub standards_declared: UnorderedSet<Standard>,
 
-    pub audit_status: AuditStatus,
+    pub audits: UnorderedSet<AuditId>,
 
-    pub auditors: UnorderedMap<UserId, CertificateId>,
-    pub certificates: UnorderedMap<CertificateId, Certificate>,
+    pub council_approved: Option<UserId>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -36,14 +36,15 @@ pub struct ContractView {
     pub published_time: WrappedTimestamp,
 
     pub source_code_size: u64,
+    pub commit_hash: String,
 
     pub publisher: UserId,
 
-    pub audit_status: String,
-
     pub standards_declared: Vec<Standard>,
 
-    pub certificates: Vec<CertificateView>,
+    pub audits: Vec<AuditId>,
+
+    pub council_approved: Option<AccountId>,
 }
 
 impl From<&Contract> for ContractView {
@@ -55,16 +56,17 @@ impl From<&Contract> for ContractView {
             version: (&c.version).into(),
             published_time: c.published_time.into(),
             source_code_size: c.source_code_archived.len() as u64,
+            commit_hash: c.commit_hash.clone(),
             publisher: c.publisher.clone(),
-            audit_status: (&c.audit_status).into(),
             standards_declared: c.standards_declared.to_vec(),
-            certificates: c.certificates.iter().map(|(_, v)| (&v).into()).collect(),
+            audits: c.audits.to_vec(),
+            council_approved: c.council_approved.clone(),
         }
     }
 }
 
 #[near_bindgen]
-impl Global {
+impl Main {
     pub fn get_contract(&self, contract_hash: Base58CryptoHash) -> Option<ContractView> {
         self.contract_hash_to_contract(&contract_hash.into())
             .map(|c| (&c).into())
@@ -87,6 +89,7 @@ impl Global {
         contract_hash: Base58CryptoHash,
         version: String,
         source_code_archived: String,
+        commit_hash: String,
         standards_declared: Vec<Standard>,
     ) -> bool {
         let version: Version = (&version).into();
@@ -94,18 +97,14 @@ impl Global {
         assert!(project.owners.contains(&env::predecessor_account_id()));
 
         let mut prefix = Vec::with_capacity(33);
-        prefix.push(b'u');
+        prefix.push(b'k');
         prefix.extend(&ContractHash::from(contract_hash));
         let mut standards_declared_set = UnorderedSet::new(prefix);
         standards_declared_set.extend(standards_declared.into_iter());
 
         let mut prefix2 = Vec::with_capacity(33);
-        prefix2.push(b'v');
+        prefix2.push(b'l');
         prefix2.extend(&ContractHash::from(contract_hash));
-
-        let mut prefix3 = Vec::with_capacity(33);
-        prefix3.push(b'w');
-        prefix3.extend(&ContractHash::from(contract_hash));
 
         let contract = Contract {
             hash: contract_hash.into(),
@@ -114,16 +113,15 @@ impl Global {
             version: version.clone(),
             published_time: env::block_timestamp(),
             source_code_archived,
+            commit_hash,
             publisher: env::predecessor_account_id(),
             standards_declared: standards_declared_set,
-            audit_status: AuditStatus::Unaudited,
-            auditors: UnorderedMap::new(prefix2),
-            certificates: UnorderedMap::new(prefix3),
+            audits: UnorderedSet::new(prefix2),
+            council_approved: None,
         };
 
         assert!(project.contracts.insert(&version, &contract).is_none());
-        assert!(self
-            .contract_hash_to_contract_id
+        assert!(Self::contract_hash_to_contract_id()
             .insert(&contract.hash, &(Project::get_id(&project_name), version))
             .is_none());
         self.save_project_by_name_or_panic(&project_name, &project);
@@ -132,15 +130,14 @@ impl Global {
     }
 }
 
-impl Global {
+impl Main {
     pub(crate) fn contract_hash_to_contract(
         &self,
         contract_hash: &ContractHash,
     ) -> Option<Contract> {
-        match self.contract_hash_to_contract_id.get(contract_hash) {
+        match Self::contract_hash_to_contract_id().get(contract_hash) {
             None => None,
-            Some((project_id, version)) => self
-                .projects
+            Some((project_id, version)) => self.projects
                 .get(&project_id)
                 .unwrap()
                 .contracts
@@ -153,23 +150,11 @@ impl Global {
             return SafetyReport::low();
         }
         let contract = contract.as_ref().unwrap();
-        if contract.certificates.len() == 0 {
-            return SafetyReport::low();
-        }
-        let mut yes = 0;
-        let mut no = 0;
-        for (_, certificate) in contract.certificates.iter() {
-            if certificate.contract_approved && certificate.basic_validity_passed {
-                yes += 1;
-            } else {
-                no += 1;
-            }
-        }
-        if yes == 0 || no > yes {
-            return SafetyReport::low();
-        }
-        if no == 0 {
+        if contract.council_approved.is_some() {
             return SafetyReport::high();
+        }
+        if contract.audits.len() == 0 {
+            return SafetyReport::low();
         }
         SafetyReport::moderate()
     }
