@@ -5,24 +5,30 @@ pub struct User {
     pub projects_owned: UnorderedSet<ProjectId>,
 
     pub public_key: Option<PublicKey>,
+
+    pub is_council: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct UserView {
-    pub projects_owned: Vec<ProjectViewLimited>,
+    pub projects_owned: Vec<Base58CryptoHash>,
 
     pub public_key: Option<Base58PublicKey>,
+
+    pub is_council: bool,
 }
 
-impl From<(&User, &Main)> for UserView {
-    fn from(u: (&User, &Main)) -> Self {
+impl From<&User> for UserView {
+    fn from(u: &User) -> Self {
         Self {
-            projects_owned: u.0.projects_owned
-            .iter()
-            .map(|id| (&u.1.projects.get(&id).unwrap()).into())
-            .collect(),
-            public_key: u.0.public_key.clone().map(|k| k.try_into().unwrap()),
+            projects_owned: u
+                .projects_owned
+                .iter()
+                .map(|id| id.into())
+                .collect(),
+            public_key: u.public_key.clone().map(|k| k.try_into().unwrap()),
+            is_council: u.is_council,
         }
     }
 }
@@ -30,17 +36,46 @@ impl From<(&User, &Main)> for UserView {
 #[near_bindgen]
 impl Main {
     pub fn get_user(&self, user_id: ValidAccountId) -> Option<UserView> {
-        Self::users().get(user_id.as_ref()).map(|u| (&u, self).into())
+        Self::users()
+            .get(user_id.as_ref())
+            .map(|u| (&u).into())
     }
 
     #[payable]
     pub fn create_user(&mut self, user_id: ValidAccountId) -> bool {
+        assert_eq!(
+            env::attached_deposit(),
+            CREATE_USER_DEPOSIT,
+            "{}",
+            ERR_DEPOSIT_NOT_ENOUGH
+        );
         assert!(
             Self::users().get(user_id.as_ref()).is_none(),
             "{}",
             ERR_ALREADY_EXISTS
         );
         let user = self.extract_user_or_create(user_id.as_ref());
+        self.save_user_or_panic(user_id.as_ref(), &user);
+
+        true
+    }
+
+    #[payable]
+    pub fn register_council(&mut self, user_id: ValidAccountId) -> bool {
+        assert_eq!(
+            env::predecessor_account_id(),
+            self.owner_id,
+            "{}",
+            ERR_ACCESS_DENIED
+        );
+        assert_eq!(
+            env::attached_deposit(),
+            REGISTER_COUNCIL_DEPOSIT,
+            "{}",
+            ERR_DEPOSIT_NOT_ENOUGH
+        );
+        let mut user = self.extract_user_or_create(user_id.as_ref());
+        user.is_council = true;
         self.save_user_or_panic(user_id.as_ref(), &user);
 
         true
@@ -57,12 +92,9 @@ impl Main {
             User {
                 projects_owned: UnorderedSet::new(prefix),
                 public_key: None,
+                is_council: false,
             }
         })
-    }
-
-    pub(crate) fn extract_user_or_panic(&mut self, user_id: &UserId) -> User {
-        Self::users().remove(&user_id).unwrap()
     }
 
     pub(crate) fn save_user_or_panic(&mut self, user_id: &UserId, user: &User) {

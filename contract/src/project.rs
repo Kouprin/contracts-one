@@ -8,7 +8,7 @@ pub struct Project {
 
     pub owners: UnorderedSet<AccountId>,
 
-    pub contracts: TreeMap<Version, Contract>,
+    pub contracts: TreeMap<Version, ContractHash>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -24,66 +24,22 @@ pub struct ProjectView {
 
     pub contracts: Vec<ContractView>,
 
-    pub council_approved: Option<AccountId>,
-}
-
-impl From<&Project> for ProjectView {
-    fn from(p: &Project) -> Self {
-        Self {
-            project_id: Project::get_id(&p.project_name).into(),
-            project_name: p.project_name.clone(),
-            description: p.description.clone(),
-            url: p.url.clone(),
-            owners: p.owners.to_vec(),
-            contracts: p.contracts.iter().map(|(_, c)| (&c).into()).collect(),
-            council_approved: p
-                .view_last_contract()
-                .map_or(None, |c| c.council_approved.into()),
-        }
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-#[serde(crate = "near_sdk::serde")]
-pub struct ProjectViewLimited {
-    pub project_id: Base58CryptoHash,
-
-    pub project_name: String,
-    pub description: String,
-
     pub last_version: Option<String>,
-    pub last_version_contract_hash: Option<Base58CryptoHash>,
-    pub publisher: Option<String>,
-
-    pub num_contracts: u64,
-
-    pub council_approved: Option<AccountId>,
 }
 
-impl From<&Project> for ProjectViewLimited {
-    fn from(p: &Project) -> Self {
-        p.view_last_contract().map_or(
-            Self {
-                project_id: Project::get_id(&p.project_name).into(),
-                project_name: p.project_name.clone(),
-                description: p.description.clone(),
-                last_version: None,
-                last_version_contract_hash: None,
-                publisher: None,
-                num_contracts: 0,
-                council_approved: None,
-            },
-            |c| Self {
-                project_id: Project::get_id(&p.project_name).into(),
-                project_name: p.project_name.clone(),
-                description: p.description.clone(),
-                last_version: Some((&c.version).into()),
-                last_version_contract_hash: Some(c.hash.into()),
-                publisher: Some(c.publisher),
-                num_contracts: p.contracts.len(),
-                council_approved: c.council_approved.into(),
-            },
-        )
+impl From<(&Project, &Main)> for ProjectView {
+    fn from(p: (&Project, &Main)) -> Self {
+        Self {
+            project_id: Project::get_id(&p.0.project_name).into(),
+            project_name: p.0.project_name.clone(),
+            description: p.0.description.clone(),
+            url: p.0.url.clone(),
+            owners: p.0.owners.to_vec(),
+            contracts: p.0.contracts.iter().map(|(_, c)| (&p.1.contracts.get(&c).unwrap()).into()).collect(),
+            last_version: p.1
+                .view_last_contract(p.0)
+                .map_or(None, |c| Some((&c.version).into())),
+        }
     }
 }
 
@@ -94,19 +50,6 @@ impl Project {
             .try_into()
             .unwrap()
     }
-
-    pub(crate) fn extract_contract_or_panic(&mut self, version: &Version) -> Contract {
-        self.contracts.remove(version).unwrap()
-    }
-
-    pub(crate) fn save_contract_or_panic(&mut self, version: &Version, contract: &Contract) {
-        assert!(self.contracts.insert(version, contract).is_none());
-    }
-
-    // TODO use Rust lifetimes and return Option<&Contract> instead
-    pub(crate) fn view_last_contract(&self) -> Option<Contract> {
-        self.contracts.iter_rev().next().map(|(_, c)| c)
-    }
 }
 
 #[near_bindgen]
@@ -114,25 +57,24 @@ impl Main {
     pub fn get_project(&self, project_name: String) -> Option<ProjectView> {
         self.projects
             .get(&Project::get_id(&project_name))
-            .map(|p| (&p).into())
+            .map(|p| (&p, self).into())
     }
 
-    pub fn get_all_projects(&self, from: u64, to: u64) -> Vec<ProjectViewLimited> {
+    pub fn get_all_projects(&self, from: u64, to: u64) -> Vec<ProjectView> {
         let from = min(from, self.projects.len());
         let to = min(to, self.projects.len());
         let mut res = vec![];
         for i in from..to {
             // values_as_vector() should work for O(1)
-            res.push((&self.projects.values_as_vector().get(i).unwrap()).into())
+            res.push((&self.projects.values_as_vector().get(i).unwrap(), self).into())
         }
         res
     }
 
     pub fn get_project_last_contract(&self, project_name: String) -> Option<ContractView> {
-        self.projects
+        self.view_last_contract(&self.projects
             .get(&Project::get_id(&project_name))
-            .unwrap()
-            .view_last_contract()
+            .unwrap())
             .map(|c| (&c).into())
     }
 
@@ -196,6 +138,13 @@ impl Main {
 }
 
 impl Main {
+    pub(crate) fn view_last_contract(&self, project: &Project) -> Option<Contract> {
+        if project.contracts.len() == 0 {
+            return None
+        }
+        self.contracts.get(&project.contracts.iter_rev().next().map(|(_, c)| c).unwrap())
+    }
+
     pub(crate) fn extract_project_or_panic(&mut self, project_id: &ProjectId) -> Project {
         self.projects.remove(project_id).unwrap()
     }

@@ -68,16 +68,16 @@ impl From<&Contract> for ContractView {
 #[near_bindgen]
 impl Main {
     pub fn get_contract(&self, contract_hash: Base58CryptoHash) -> Option<ContractView> {
-        self.contract_hash_to_contract(&contract_hash.into())
+        self.contracts.get(&contract_hash.into())
             .map(|c| (&c).into())
     }
 
     pub fn get_contract_safety_report(&self, contract_hash: Base58CryptoHash) -> SafetyReport {
-        self.calculate_safety_level(&self.contract_hash_to_contract(&contract_hash.into()))
+        self.calculate_safety_level(&self.contracts.get(&contract_hash.into()))
     }
 
     pub fn get_contract_source_code(&self, contract_hash: Base58CryptoHash) -> Option<String> {
-        self.contract_hash_to_contract(&contract_hash.into())
+        self.contracts.get(&contract_hash.into())
             .map(|c| c.source_code_archived)
     }
 
@@ -120,10 +120,8 @@ impl Main {
             council_approved: None,
         };
 
-        assert!(project.contracts.insert(&version, &contract).is_none());
-        assert!(Self::contract_hash_to_contract_id()
-            .insert(&contract.hash, &(Project::get_id(&project_name), version))
-            .is_none());
+        assert!(self.contracts.insert(&contract_hash.into(), &contract).is_none());
+        assert!(project.contracts.insert(&version, &contract_hash.into()).is_none());
         self.save_project_by_name_or_panic(&project_name, &project);
 
         true
@@ -131,20 +129,6 @@ impl Main {
 }
 
 impl Main {
-    pub(crate) fn contract_hash_to_contract(
-        &self,
-        contract_hash: &ContractHash,
-    ) -> Option<Contract> {
-        match Self::contract_hash_to_contract_id().get(contract_hash) {
-            None => None,
-            Some((project_id, version)) => self.projects
-                .get(&project_id)
-                .unwrap()
-                .contracts
-                .get(&version),
-        }
-    }
-
     pub(crate) fn calculate_safety_level(&self, contract: &Option<Contract>) -> SafetyReport {
         if contract.is_none() {
             return SafetyReport::low();

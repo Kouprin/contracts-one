@@ -33,6 +33,8 @@ near_sdk::setup_alloc!();
 pub struct Main {
     pub projects: UnorderedMap<ProjectId, Project>,
     pub contracts: TreeMap<ContractHash, Contract>,
+    // users: LookupMap<UserId, User>,
+    // audits: LookupMap<AuditId, Audit>,
 
     pub owner_id: AccountId,
     pub dao_id: AccountId,
@@ -70,9 +72,5 @@ impl Main {
 
     pub(crate) fn audits() -> LookupMap<AuditId, Audit> {
         LookupMap::new(b"d".to_vec())
-    }
-
-    pub(crate) fn contract_hash_to_contract_id() -> LookupMap<ContractHash, (ProjectId, Version)> {
-        LookupMap::new(b"e".to_vec())
     }
 }

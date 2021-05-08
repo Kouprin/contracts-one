@@ -2,9 +2,8 @@ use crate::*;
 
 pub const ERR_DEPOSIT_NOT_ENOUGH: &str = "Attached deposit is not enough";
 pub const ERR_PROJECT_NAME_INVALID: &str = "Project name is invalid";
-pub const ERR_NOT_AN_AUDITOR: &str = "Audits can be submitted by auditors only";
 pub const ERR_INVALID_REPORT_URL: &str = "Report cannot be used more than once";
-pub const ERR_NOT_AN_OWNER: &str = "Only contracts.one owner can do this operation";
+pub const ERR_NOT_AN_OWNER: &str = "Only owner can do this operation";
 pub const ERR_ALREADY_EXISTS: &str = "Already exists";
 pub const ERR_ACCESS_DENIED: &str = "Caller is not allowed to do this operation";
 pub const ERR_PROJECT_CREATOR_IS_NOT_OWNER: &str =
@@ -26,7 +25,7 @@ pub const ISSUE_LEVEL_MEDIUM: &str = "Medium";
 pub const ISSUE_LEVEL_MINOR: &str = "Minor";
 
 pub const REGISTER_PROJECT_DEPOSIT: Balance = 1;
-pub const REGISTER_AUDITOR_DEPOSIT: Balance = 1;
+pub const REGISTER_COUNCIL_DEPOSIT: Balance = 1;
 pub const SIGN_AUDIT_DEPOSIT: Balance = 1;
 pub const CREATE_USER_DEPOSIT: Balance = 1;
 

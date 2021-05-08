@@ -4,8 +4,8 @@ use std::convert::TryInto;
 /// Import the generated proxy contract
 use contracts_one::MainContract;
 use contracts_one::{
-    ContractView, ProjectView, ProjectViewLimited, UserView, CREATE_USER_DEPOSIT,
-    ERR_ACCESS_DENIED, ERR_NOT_AN_AUDITOR, ERR_PROJECT_NAME_INVALID, REGISTER_AUDITOR_DEPOSIT,
+    ContractView, ProjectView, UserView, CREATE_USER_DEPOSIT,
+    ERR_ACCESS_DENIED, ERR_PROJECT_NAME_INVALID,
     REGISTER_PROJECT_DEPOSIT, SIGN_AUDIT_DEPOSIT,
 };
 
@@ -71,7 +71,7 @@ impl State {
         self.accounts.insert(BOB.into(), bob);
     }
 
-    pub fn get_all_projects(&self) -> Vec<ProjectViewLimited> {
+    pub fn get_all_projects(&self) -> Vec<ProjectView> {
         let contract = &self.contract;
         let res = view!(contract.get_all_projects(0, 1000)).unwrap_json();
         res
