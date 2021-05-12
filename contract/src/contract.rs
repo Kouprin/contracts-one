@@ -21,7 +21,7 @@ pub struct Contract {
 
     pub audits: UnorderedSet<AuditId>,
 
-    pub council_approved: Option<UserId>,
+    pub certificates: UnorderedSet<Certificate>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -44,7 +44,7 @@ pub struct ContractView {
 
     pub audits: Vec<AuditId>,
 
-    pub council_approved: Option<AccountId>,
+    pub certificates: Vec<CertificateView>,
 }
 
 impl From<&Contract> for ContractView {
@@ -60,7 +60,7 @@ impl From<&Contract> for ContractView {
             publisher: c.publisher.clone(),
             standards_declared: c.standards_declared.to_vec(),
             audits: c.audits.to_vec(),
-            council_approved: c.council_approved.clone(),
+            certificates: c.certificates.iter().map(|c| (&c).into()).collect(),
         }
     }
 }
@@ -68,7 +68,8 @@ impl From<&Contract> for ContractView {
 #[near_bindgen]
 impl Main {
     pub fn get_contract(&self, contract_hash: Base58CryptoHash) -> Option<ContractView> {
-        self.contracts.get(&contract_hash.into())
+        self.contracts
+            .get(&contract_hash.into())
             .map(|c| (&c).into())
     }
 
@@ -77,7 +78,8 @@ impl Main {
     }
 
     pub fn get_contract_source_code(&self, contract_hash: Base58CryptoHash) -> Option<String> {
-        self.contracts.get(&contract_hash.into())
+        self.contracts
+            .get(&contract_hash.into())
             .map(|c| c.source_code_archived)
     }
 
@@ -106,6 +108,10 @@ impl Main {
         prefix2.push(b'l');
         prefix2.extend(&ContractHash::from(contract_hash));
 
+        let mut prefix3 = Vec::with_capacity(33);
+        prefix3.push(b'm');
+        prefix3.extend(&ContractHash::from(contract_hash));
+
         let contract = Contract {
             hash: contract_hash.into(),
             project_name: project_name.clone(),
@@ -117,11 +123,17 @@ impl Main {
             publisher: env::predecessor_account_id(),
             standards_declared: standards_declared_set,
             audits: UnorderedSet::new(prefix2),
-            council_approved: None,
+            certificates: UnorderedSet::new(prefix3),
         };
 
-        assert!(self.contracts.insert(&contract_hash.into(), &contract).is_none());
-        assert!(project.contracts.insert(&version, &contract_hash.into()).is_none());
+        assert!(self
+            .contracts
+            .insert(&contract_hash.into(), &contract)
+            .is_none());
+        assert!(project
+            .contracts
+            .insert(&version, &contract_hash.into())
+            .is_none());
         self.save_project_by_name_or_panic(&project_name, &project);
 
         true
@@ -129,9 +141,12 @@ impl Main {
 }
 
 impl Main {
-    pub(crate) fn calculate_safety_level(&self, contract: &Option<Contract>) -> SafetyReport {
+    pub(crate) fn calculate_safety_level(&self, _contract: &Option<Contract>) -> SafetyReport {
+        SafetyReport::low()
+        // TODO
+        /*
         if contract.is_none() {
-            return SafetyReport::low();
+
         }
         let contract = contract.as_ref().unwrap();
         if contract.council_approved.is_some() {
@@ -141,5 +156,6 @@ impl Main {
             return SafetyReport::low();
         }
         SafetyReport::moderate()
+        */
     }
 }

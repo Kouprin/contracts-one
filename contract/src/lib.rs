@@ -3,6 +3,7 @@ use std::cmp::min;
 use std::convert::TryInto;
 
 mod audit;
+mod certificate;
 mod contract;
 mod issue;
 mod primitives;
@@ -11,6 +12,7 @@ mod user;
 mod version;
 
 pub use crate::audit::*;
+pub use crate::certificate::*;
 pub use crate::contract::*;
 pub use crate::issue::*;
 pub use crate::primitives::*;
@@ -35,7 +37,6 @@ pub struct Main {
     pub contracts: TreeMap<ContractHash, Contract>,
     // users: LookupMap<UserId, User>,
     // audits: LookupMap<AuditId, Audit>,
-
     pub owner_id: AccountId,
     pub dao_id: AccountId,
 }

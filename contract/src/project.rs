@@ -35,8 +35,14 @@ impl From<(&Project, &Main)> for ProjectView {
             description: p.0.description.clone(),
             url: p.0.url.clone(),
             owners: p.0.owners.to_vec(),
-            contracts: p.0.contracts.iter().map(|(_, c)| (&p.1.contracts.get(&c).unwrap()).into()).collect(),
-            last_version: p.1
+            contracts: p
+                .0
+                .contracts
+                .iter()
+                .map(|(_, c)| (&p.1.contracts.get(&c).unwrap()).into())
+                .collect(),
+            last_version: p
+                .1
                 .view_last_contract(p.0)
                 .map_or(None, |c| Some((&c.version).into())),
         }
@@ -72,9 +78,7 @@ impl Main {
     }
 
     pub fn get_project_last_contract(&self, project_name: String) -> Option<ContractView> {
-        self.view_last_contract(&self.projects
-            .get(&Project::get_id(&project_name))
-            .unwrap())
+        self.view_last_contract(&self.projects.get(&Project::get_id(&project_name)).unwrap())
             .map(|c| (&c).into())
     }
 
@@ -140,9 +144,10 @@ impl Main {
 impl Main {
     pub(crate) fn view_last_contract(&self, project: &Project) -> Option<Contract> {
         if project.contracts.len() == 0 {
-            return None
+            return None;
         }
-        self.contracts.get(&project.contracts.iter_rev().next().map(|(_, c)| c).unwrap())
+        self.contracts
+            .get(&project.contracts.iter_rev().next().map(|(_, c)| c).unwrap())
     }
 
     pub(crate) fn extract_project_or_panic(&mut self, project_id: &ProjectId) -> Project {

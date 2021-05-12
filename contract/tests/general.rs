@@ -4,9 +4,8 @@ use std::convert::TryInto;
 /// Import the generated proxy contract
 use contracts_one::MainContract;
 use contracts_one::{
-    ContractView, ProjectView, UserView, CREATE_USER_DEPOSIT,
-    ERR_ACCESS_DENIED, ERR_PROJECT_NAME_INVALID,
-    REGISTER_PROJECT_DEPOSIT, SIGN_AUDIT_DEPOSIT,
+    ContractView, ProjectView, UserView, CREATE_USER_DEPOSIT, ERR_ACCESS_DENIED,
+    ERR_PROJECT_NAME_INVALID, REGISTER_PROJECT_DEPOSIT, SIGN_AUDIT_DEPOSIT,
 };
 
 use near_sdk::json_types::Base58CryptoHash;

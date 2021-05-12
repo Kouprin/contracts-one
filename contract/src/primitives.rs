@@ -6,10 +6,19 @@ pub const ERR_INVALID_REPORT_URL: &str = "Report cannot be used more than once";
 pub const ERR_NOT_AN_OWNER: &str = "Only owner can do this operation";
 pub const ERR_ALREADY_EXISTS: &str = "Already exists";
 pub const ERR_ACCESS_DENIED: &str = "Caller is not allowed to do this operation";
+pub const ERR_EMPTY_CERTIFICATE: &str = "Nothing to certify";
 pub const ERR_PROJECT_CREATOR_IS_NOT_OWNER: &str =
     "Project creator is not in list of project owners";
 pub const ERR_TEXT_TOO_LONG: &str = "Text field is limited for MAX_TEXT_LENGTH symbols";
 pub const ERR_INVALID_SCORE: &str = "The score is invalid";
+
+pub(crate) fn assert_one_yocto() {
+    assert_eq!(
+        env::attached_deposit(),
+        1,
+        "Requires attached deposit of exactly 1 yoctoNEAR",
+    )
+}
 
 pub const SAFETY_LEVEL_LOW: &str = "Low";
 pub const SAFETY_LEVEL_LOW_EXPLANATION: &str =
@@ -25,7 +34,6 @@ pub const ISSUE_LEVEL_MEDIUM: &str = "Medium";
 pub const ISSUE_LEVEL_MINOR: &str = "Minor";
 
 pub const REGISTER_PROJECT_DEPOSIT: Balance = 1;
-pub const REGISTER_COUNCIL_DEPOSIT: Balance = 1;
 pub const SIGN_AUDIT_DEPOSIT: Balance = 1;
 pub const CREATE_USER_DEPOSIT: Balance = 1;
 

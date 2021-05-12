@@ -22,11 +22,7 @@ pub struct UserView {
 impl From<&User> for UserView {
     fn from(u: &User) -> Self {
         Self {
-            projects_owned: u
-                .projects_owned
-                .iter()
-                .map(|id| id.into())
-                .collect(),
+            projects_owned: u.projects_owned.iter().map(|id| id.into()).collect(),
             public_key: u.public_key.clone().map(|k| k.try_into().unwrap()),
             is_council: u.is_council,
         }
@@ -36,9 +32,7 @@ impl From<&User> for UserView {
 #[near_bindgen]
 impl Main {
     pub fn get_user(&self, user_id: ValidAccountId) -> Option<UserView> {
-        Self::users()
-            .get(user_id.as_ref())
-            .map(|u| (&u).into())
+        Self::users().get(user_id.as_ref()).map(|u| (&u).into())
     }
 
     #[payable]
@@ -62,17 +56,12 @@ impl Main {
 
     #[payable]
     pub fn register_council(&mut self, user_id: ValidAccountId) -> bool {
+        assert_one_yocto();
         assert_eq!(
             env::predecessor_account_id(),
             self.owner_id,
             "{}",
             ERR_ACCESS_DENIED
-        );
-        assert_eq!(
-            env::attached_deposit(),
-            REGISTER_COUNCIL_DEPOSIT,
-            "{}",
-            ERR_DEPOSIT_NOT_ENOUGH
         );
         let mut user = self.extract_user_or_create(user_id.as_ref());
         user.is_council = true;
