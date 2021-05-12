@@ -42,30 +42,10 @@ pub const MAX_TEXT_LENGTH: usize = 1023;
 pub type AuditId = CryptoHash;
 // pub type ContractId = (ProjectId, Version); - unused
 pub type ContractHash = CryptoHash;
-pub type IssueId = CryptoHash;
 pub type ProjectId = CryptoHash;
 pub type Standard = String;
 pub type Url = String;
 pub type UserId = AccountId;
-
-#[derive(BorshDeserialize, BorshSerialize)]
-pub enum IssueLevel {
-    Critical,
-    Major,
-    Medium,
-    Minor,
-}
-
-impl From<&IssueLevel> for String {
-    fn from(i: &IssueLevel) -> Self {
-        match i {
-            IssueLevel::Critical => ISSUE_LEVEL_CRITICAL.to_string(),
-            IssueLevel::Major => ISSUE_LEVEL_MAJOR.to_string(),
-            IssueLevel::Medium => ISSUE_LEVEL_MAJOR.to_string(),
-            IssueLevel::Minor => ISSUE_LEVEL_MINOR.to_string(),
-        }
-    }
-}
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
