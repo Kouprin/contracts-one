@@ -4,9 +4,8 @@ use std::convert::TryInto;
 /// Import the generated proxy contract
 use contracts_one::MainContract;
 use contracts_one::{
-    ContractView, ProjectView, UserView, CREATE_USER_DEPOSIT, ERR_ACCESS_DENIED,
-    ERR_PROJECT_NAME_INVALID, REGISTER_CONTRACT_DEPOSIT, REGISTER_PROJECT_DEPOSIT,
-    SUBMIT_AUDIT_DEPOSIT,
+    ContractView, ProjectView, UserView, CREATE_USER_DEPOSIT, ERR_PROJECT_NAME_INVALID,
+    REGISTER_CONTRACT_DEPOSIT, REGISTER_PROJECT_DEPOSIT, SUBMIT_AUDIT_DEPOSIT,
 };
 
 use near_sdk::json_types::Base58CryptoHash;
@@ -50,7 +49,7 @@ impl State {
             bytes: &CONTRACT_WASM_BYTES,
             signer_account: root,
             deposit: to_yocto("1000000000"),
-            init_method: new("root".try_into().unwrap())
+            init_method: new()
         );
         let state = State {
             root,

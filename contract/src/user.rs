@@ -4,8 +4,6 @@ use crate::*;
 pub struct User {
     pub projects_owned: UnorderedSet<ProjectId>,
 
-    pub public_key: Option<PublicKey>,
-
     pub is_council: bool,
 }
 
@@ -14,8 +12,6 @@ pub struct User {
 pub struct UserView {
     pub projects_owned: Vec<Base58CryptoHash>,
 
-    pub public_key: Option<Base58PublicKey>,
-
     pub is_council: bool,
 }
 
@@ -23,7 +19,6 @@ impl From<&User> for UserView {
     fn from(u: &User) -> Self {
         Self {
             projects_owned: u.projects_owned.iter().map(|id| id.into()).collect(),
-            public_key: u.public_key.clone().map(|k| k.try_into().unwrap()),
             is_council: u.is_council,
         }
     }
@@ -71,7 +66,6 @@ impl Main {
 
             User {
                 projects_owned: UnorderedSet::new(prefix),
-                public_key: None,
                 is_council: false,
             }
         })

@@ -20,11 +20,9 @@ pub use crate::version::*;
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, LookupSet, TreeMap, UnorderedMap, UnorderedSet};
-use near_sdk::json_types::{Base58CryptoHash, Base58PublicKey, ValidAccountId, WrappedTimestamp};
+use near_sdk::json_types::{Base58CryptoHash, ValidAccountId, WrappedTimestamp};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{
-    env, near_bindgen, AccountId, Balance, CryptoHash, PanicOnDefault, PublicKey, Timestamp,
-};
+use near_sdk::{env, near_bindgen, AccountId, Balance, CryptoHash, PanicOnDefault, Timestamp};
 
 near_sdk::setup_alloc!();
 
@@ -41,20 +39,17 @@ pub struct Main {
 #[near_bindgen]
 impl Main {
     #[init]
-    pub fn new(owner_id: ValidAccountId) -> Self {
+    pub fn new() -> Self {
         assert!(!env::state_exists(), "Already initialized");
         let mut main = Self {
             projects: UnorderedMap::new(b"a".to_vec()),
             contracts: TreeMap::new(b"b".to_vec()),
         };
 
-        let mut user = main.extract_user_or_create(owner_id.as_ref());
-        user.is_council = true;
-        main.save_user_or_panic(owner_id.as_ref(), &user);
-
         let mut user = main.extract_user_or_create(&env::signer_account_id());
         user.is_council = true;
         main.save_user_or_panic(&env::signer_account_id(), &user);
+        assert!(Self::council().insert(&env::signer_account_id()));
 
         main
     }
