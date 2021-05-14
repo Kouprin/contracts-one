@@ -5,7 +5,8 @@ use std::convert::TryInto;
 use contracts_one::MainContract;
 use contracts_one::{
     ContractView, ProjectView, UserView, CREATE_USER_DEPOSIT, ERR_ACCESS_DENIED,
-    ERR_PROJECT_NAME_INVALID, REGISTER_PROJECT_DEPOSIT, SIGN_AUDIT_DEPOSIT,
+    ERR_PROJECT_NAME_INVALID, REGISTER_CONTRACT_DEPOSIT, REGISTER_PROJECT_DEPOSIT,
+    SUBMIT_AUDIT_DEPOSIT,
 };
 
 use near_sdk::json_types::Base58CryptoHash;
@@ -49,14 +50,15 @@ impl State {
             bytes: &CONTRACT_WASM_BYTES,
             signer_account: root,
             deposit: to_yocto("1000000000"),
-            init_method: test_new()
+            init_method: new("root".try_into().unwrap())
         );
         let state = State {
             root,
             contract: deployed_contract,
             accounts: HashMap::default(),
         };
-        state.do_create_user(&state.root.account_id(), None);
+        // Already added in new()
+        // state.do_create_user(&state.root.account_id(), None);
         state
     }
 
@@ -139,11 +141,10 @@ impl State {
                 "default contract name".to_string(),
                 hash.try_into().unwrap(),
                 version.to_string(),
-                "source code".to_string(),
                 "default sha-1".to_string(),
                 DEFAULT_STANDARDS_DECLARED
             ),
-            deposit = REGISTER_PROJECT_DEPOSIT
+            deposit = REGISTER_CONTRACT_DEPOSIT
         );
         if let Some(msg) = err {
             assert!(
@@ -197,7 +198,7 @@ impl State {
                 summary.to_string(),
                 date.into()
             ),
-            deposit = SIGN_AUDIT_DEPOSIT
+            deposit = SUBMIT_AUDIT_DEPOSIT
         );
         if let Some(msg) = err {
             assert!(

@@ -12,7 +12,7 @@ pub struct Contract {
 
     // Cargo.toml + Cargo.lock + src folder?
     // Full marketplace contract + tests took 30k, 0.3 NEAR
-    pub source_code_archived: String,
+    pub source_code_archived: Option<String>,
     pub commit_hash: String,
 
     pub publisher: UserId,
@@ -55,7 +55,11 @@ impl From<&Contract> for ContractView {
             contract_name: c.contract_name.clone(),
             version: (&c.version).into(),
             published_time: c.published_time.into(),
-            source_code_size: c.source_code_archived.len() as u64,
+            source_code_size: c
+                .source_code_archived
+                .as_ref()
+                .map(|s| s.len() as u64)
+                .unwrap_or(0),
             commit_hash: c.commit_hash.clone(),
             publisher: c.publisher.clone(),
             standards_declared: c.standards_declared.to_vec(),
@@ -81,6 +85,7 @@ impl Main {
         self.contracts
             .get(&contract_hash.into())
             .map(|c| c.source_code_archived)
+            .unwrap_or(None)
     }
 
     #[payable]
@@ -90,11 +95,16 @@ impl Main {
         contract_name: String,
         contract_hash: Base58CryptoHash,
         version: String,
-        source_code_archived: String,
         commit_hash: String,
         standards_declared: Vec<Standard>,
     ) -> bool {
-        let version: Version = (&version).into();
+        Self::assert_deposit(REGISTER_CONTRACT_DEPOSIT);
+        Self::assert_text_len(&project_name);
+        Self::assert_text_len(&contract_name);
+        Self::assert_text_len(&commit_hash);
+        Self::assert_vec_len(&standards_declared);
+
+        let version: Version = (&version).into(); // asserts if version is valid
         let mut project = self.extract_project_by_name_or_panic(&project_name);
         assert!(project.owners.contains(&env::predecessor_account_id()));
 
@@ -118,7 +128,7 @@ impl Main {
             contract_name,
             version: version.clone(),
             published_time: env::block_timestamp(),
-            source_code_archived,
+            source_code_archived: None,
             commit_hash,
             publisher: env::predecessor_account_id(),
             standards_declared: standards_declared_set,
@@ -135,6 +145,26 @@ impl Main {
             .insert(&version, &contract_hash.into())
             .is_none());
         self.save_project_by_name_or_panic(&project_name, &project);
+
+        true
+    }
+
+    #[payable]
+    pub fn upload_source_code(
+        &mut self,
+        contract_hash: Base58CryptoHash,
+        source_code_archived: String,
+    ) -> bool {
+        let mut contract = self.contracts.get(&contract_hash.into()).unwrap();
+        if contract.source_code_archived.is_some() {
+            Self::assert_council();
+            Self::assert_one_yocto();
+        } else {
+            self.assert_council_or_project_owner(&contract.project_name);
+            Self::assert_deposit(source_code_archived.len() as Balance * PRICE_PER_BYTE);
+        }
+        contract.source_code_archived = Some(source_code_archived);
+        self.contracts.insert(&contract_hash.into(), &contract);
 
         true
     }

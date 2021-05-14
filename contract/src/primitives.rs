@@ -1,43 +1,27 @@
 use crate::*;
 
 pub const ERR_DEPOSIT_NOT_ENOUGH: &str = "Attached deposit is not enough";
+pub const ERR_COUNCIL: &str = "Only council can do this operation";
+pub const ERR_COUNCIL_OR_PROJECT_OWNER: &str =
+    "Only project owner or council can do this operation";
 pub const ERR_PROJECT_NAME_INVALID: &str = "Project name is invalid";
 pub const ERR_INVALID_REPORT_URL: &str = "Report cannot be used more than once";
-pub const ERR_NOT_AN_OWNER: &str = "Only owner can do this operation";
 pub const ERR_ALREADY_EXISTS: &str = "Already exists";
 pub const ERR_ACCESS_DENIED: &str = "Caller is not allowed to do this operation";
 pub const ERR_EMPTY_CERTIFICATE: &str = "Nothing to certify";
 pub const ERR_PROJECT_CREATOR_IS_NOT_OWNER: &str =
     "Project creator is not in list of project owners";
-pub const ERR_TEXT_TOO_LONG: &str = "Text field is limited for MAX_TEXT_LENGTH symbols";
+pub const ERR_TEXT_TOO_LONG: &str = "Text is too long";
+pub const ERR_VEC_TOO_LONG: &str = "Vector is too long";
 pub const ERR_INVALID_SCORE: &str = "The score is invalid";
 
-pub(crate) fn assert_one_yocto() {
-    assert_eq!(
-        env::attached_deposit(),
-        1,
-        "Requires attached deposit of exactly 1 yoctoNEAR",
-    )
-}
-
-pub const SAFETY_LEVEL_LOW: &str = "Low";
-pub const SAFETY_LEVEL_LOW_EXPLANATION: &str =
-    "The contract hasn't been audited or some issues have been found. Use it on you own risk.";
-pub const SAFETY_LEVEL_MODERATE: &str = "Moderate";
-pub const SAFETY_LEVEL_MODERATE_EXPLANATION: &str = "The contract has been audited and no issues have been found. However, there were no approval from NEAR experts. Use it on you own risk.";
-pub const SAFETY_LEVEL_HIGH: &str = "High";
-pub const SAFETY_LEVEL_HIGH_EXPLANATION: &str = "NEAR experts approved the contract is safe.";
-
-pub const ISSUE_LEVEL_CRITICAL: &str = "Critical";
-pub const ISSUE_LEVEL_MAJOR: &str = "Major";
-pub const ISSUE_LEVEL_MEDIUM: &str = "Medium";
-pub const ISSUE_LEVEL_MINOR: &str = "Minor";
-
-pub const REGISTER_PROJECT_DEPOSIT: Balance = 1;
-pub const SIGN_AUDIT_DEPOSIT: Balance = 1;
-pub const CREATE_USER_DEPOSIT: Balance = 1;
-
-pub const MAX_TEXT_LENGTH: usize = 1023;
+pub const REGISTER_PROJECT_DEPOSIT: Balance = 1_000_000_000_000_000_000_000_000; // 1 NEAR
+pub const REGISTER_CONTRACT_DEPOSIT: Balance = 100_000_000_000_000_000_000_000; // 0.1 NEAR
+pub const CREATE_USER_DEPOSIT: Balance = 10_000_000_000_000_000_000_000; // 0.01 NEAR
+pub const SUBMIT_AUDIT_DEPOSIT: Balance = 100_000_000_000_000_000_000_000; // 0.1 NEAR
+pub const MAX_TEXT_LENGTH: usize = 1000;
+pub const MAX_VEC_LENGTH: usize = 16;
+pub const PRICE_PER_BYTE: Balance = 10_000_000_000_000_000_000;
 
 pub type AuditId = CryptoHash;
 // pub type ContractId = (ProjectId, Version); - unused
@@ -53,6 +37,14 @@ pub struct SafetyReport {
     pub safety_level: String,
     pub safety_explanation: String,
 }
+
+pub const SAFETY_LEVEL_LOW: &str = "Low";
+pub const SAFETY_LEVEL_LOW_EXPLANATION: &str =
+    "The contract hasn't been audited or some issues have been found. Use it on you own risk.";
+pub const SAFETY_LEVEL_MODERATE: &str = "Moderate";
+pub const SAFETY_LEVEL_MODERATE_EXPLANATION: &str = "The contract has been audited and no issues have been found. However, there were no approval from NEAR experts. Use it on you own risk.";
+pub const SAFETY_LEVEL_HIGH: &str = "High";
+pub const SAFETY_LEVEL_HIGH_EXPLANATION: &str = "NEAR experts approved the contract is safe.";
 
 impl SafetyReport {
     pub fn low() -> Self {

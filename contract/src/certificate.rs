@@ -53,17 +53,18 @@ impl Main {
         is_standards_confirmed: Option<bool>,
         details: String,
     ) -> bool {
-        assert_one_yocto();
+        Self::assert_one_yocto();
+        Self::assert_council();
+        Self::assert_text_len(&details);
         if is_hash_valid.is_none()
             && is_audit_accepted.is_none()
             && is_code_approved.is_none()
             && is_standards_confirmed.is_none()
+            && details.len() == 0
         {
             // Empty certificate
             assert!(false, "{}", ERR_EMPTY_CERTIFICATE);
         }
-        let user = Self::users().get(&env::predecessor_account_id()).unwrap();
-        assert!(user.is_council, "{}", ERR_ACCESS_DENIED);
 
         let mut contract = self.contracts.get(&contract_hash.into()).unwrap();
         contract.certificates.insert(&Certificate {

@@ -37,12 +37,7 @@ impl Main {
 
     #[payable]
     pub fn create_user(&mut self, user_id: ValidAccountId) -> bool {
-        assert_eq!(
-            env::attached_deposit(),
-            CREATE_USER_DEPOSIT,
-            "{}",
-            ERR_DEPOSIT_NOT_ENOUGH
-        );
+        Self::assert_deposit(CREATE_USER_DEPOSIT);
         assert!(
             Self::users().get(user_id.as_ref()).is_none(),
             "{}",
@@ -56,16 +51,12 @@ impl Main {
 
     #[payable]
     pub fn register_council(&mut self, user_id: ValidAccountId) -> bool {
-        assert_one_yocto();
-        assert_eq!(
-            env::predecessor_account_id(),
-            self.owner_id,
-            "{}",
-            ERR_ACCESS_DENIED
-        );
+        Self::assert_council();
+        Self::assert_one_yocto();
         let mut user = self.extract_user_or_create(user_id.as_ref());
         user.is_council = true;
         self.save_user_or_panic(user_id.as_ref(), &user);
+        assert!(Self::council().insert(user_id.as_ref()));
 
         true
     }

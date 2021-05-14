@@ -57,6 +57,10 @@ impl Main {
         summary: String,
         date: WrappedTimestamp,
     ) -> bool {
+        Self::assert_deposit(SUBMIT_AUDIT_DEPOSIT);
+        Self::assert_text_len(&auditor_url);
+        Self::assert_text_len(&report_url);
+        Self::assert_text_len(&summary);
         let mut audits = Self::audits();
         let audit = Audit {
             publisher: env::predecessor_account_id(),
@@ -68,6 +72,7 @@ impl Main {
         assert!(audits.insert(&audit.id(), &audit).is_none());
 
         let mut contract = self.contracts.get(&contract_hash.into()).unwrap();
+        self.assert_council_or_project_owner(&contract.project_name);
         assert!(contract.audits.insert(&audit.id()));
 
         true

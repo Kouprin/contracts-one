@@ -90,6 +90,7 @@ impl Main {
         url: String,
         owners: Vec<ValidAccountId>,
     ) -> bool {
+        Self::assert_deposit(REGISTER_PROJECT_DEPOSIT);
         assert!(
             project_name.len() > 0 && project_name.len() <= 64,
             "{}",
@@ -97,6 +98,9 @@ impl Main {
         );
         let re = Regex::new(r"^(([A-Z|a-z|0-9]+[\-_\.])*[A-Z|a-z|0-9]+)$").unwrap();
         assert!(re.is_match(&project_name), "{}", ERR_PROJECT_NAME_INVALID);
+        Self::assert_text_len(&description);
+        Self::assert_text_len(&url);
+        Self::assert_vec_len(&owners);
 
         let project_id = Project::get_id(&project_name);
         let mut is_predecessor_found = false;
