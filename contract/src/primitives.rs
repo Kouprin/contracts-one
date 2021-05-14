@@ -35,34 +35,29 @@ pub type UserId = AccountId;
 #[serde(crate = "near_sdk::serde")]
 pub struct SafetyReport {
     pub safety_level: String,
-    pub safety_explanation: String,
+    pub safety_issues: Vec<String>,
 }
 
+pub const SAFETY_LEVEL_CRITICAL: &str = "Dangerous";
 pub const SAFETY_LEVEL_LOW: &str = "Low";
-pub const SAFETY_LEVEL_LOW_EXPLANATION: &str =
-    "The contract hasn't been audited or some issues have been found. Use it on you own risk.";
 pub const SAFETY_LEVEL_MODERATE: &str = "Moderate";
-pub const SAFETY_LEVEL_MODERATE_EXPLANATION: &str = "The contract has been audited and no issues have been found. However, there were no approval from NEAR experts. Use it on you own risk.";
 pub const SAFETY_LEVEL_HIGH: &str = "High";
-pub const SAFETY_LEVEL_HIGH_EXPLANATION: &str = "NEAR experts approved the contract is safe.";
+
+pub const SAFETY_REPORT_NO_SOURCE_CODE: &str = "No source code uploaded. Don't trust.";
+pub const SAFETY_REPORT_NO_AUDITS: &str = "The contract hasn't been audited.";
+pub const SAFETY_REPORT_NO_CERTIFICATES: &str = "The contract hasn't been certified by NEAR council.";
 
 impl SafetyReport {
-    pub fn low() -> Self {
+    pub fn new(safety_level_num: u64, safety_issues: Vec<&str>) -> Self {
+        let safety_level = match safety_level_num {
+            1 => SAFETY_LEVEL_LOW,
+            2 => SAFETY_LEVEL_MODERATE,
+            3 => SAFETY_LEVEL_HIGH,
+            _ => SAFETY_LEVEL_CRITICAL,
+        }.to_string();
         Self {
-            safety_level: SAFETY_LEVEL_LOW.to_string(),
-            safety_explanation: SAFETY_LEVEL_LOW_EXPLANATION.to_string(),
-        }
-    }
-    pub fn moderate() -> Self {
-        Self {
-            safety_level: SAFETY_LEVEL_MODERATE.to_string(),
-            safety_explanation: SAFETY_LEVEL_MODERATE_EXPLANATION.to_string(),
-        }
-    }
-    pub fn high() -> Self {
-        Self {
-            safety_level: SAFETY_LEVEL_HIGH.to_string(),
-            safety_explanation: SAFETY_LEVEL_HIGH_EXPLANATION.to_string(),
+            safety_level,
+            safety_issues: safety_issues.iter().map(|&s| s.into()).collect(),
         }
     }
 }

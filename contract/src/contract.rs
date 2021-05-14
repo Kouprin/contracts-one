@@ -24,6 +24,29 @@ pub struct Contract {
     pub certificates: UnorderedSet<Certificate>,
 }
 
+impl Contract {
+    pub(crate) fn get_safety_report(&self) -> SafetyReport {
+        if self.source_code_archived.is_none() {
+            return SafetyReport::new (0, vec![SAFETY_REPORT_NO_SOURCE_CODE]);
+        }
+        let mut safety_level = 3;
+        let mut issues = vec![];
+        if self.audits.is_empty() {
+            safety_level = min(safety_level, 2);
+            issues.push(SAFETY_REPORT_NO_AUDITS);
+        }
+
+        if self.certificates.is_empty() {
+            safety_level = min(safety_level, 1);
+            issues.push(SAFETY_REPORT_NO_CERTIFICATES);
+        } else {
+            // TODO implement certificates analyses
+        }
+
+        return SafetyReport::new (safety_level , issues );
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct ContractView {
@@ -45,6 +68,8 @@ pub struct ContractView {
     pub audits: Vec<AuditId>,
 
     pub certificates: Vec<CertificateView>,
+
+    pub safety_report: SafetyReport,
 }
 
 impl From<&Contract> for ContractView {
@@ -65,6 +90,7 @@ impl From<&Contract> for ContractView {
             standards_declared: c.standards_declared.to_vec(),
             audits: c.audits.to_vec(),
             certificates: c.certificates.iter().map(|c| (&c).into()).collect(),
+            safety_report: c.get_safety_report()
         }
     }
 }
@@ -75,10 +101,6 @@ impl Main {
         self.contracts
             .get(&contract_hash.into())
             .map(|c| (&c).into())
-    }
-
-    pub fn get_contract_safety_report(&self, contract_hash: Base58CryptoHash) -> SafetyReport {
-        self.calculate_safety_level(&self.contracts.get(&contract_hash.into()))
     }
 
     pub fn get_contract_source_code(&self, contract_hash: Base58CryptoHash) -> Option<String> {
@@ -167,25 +189,5 @@ impl Main {
         self.contracts.insert(&contract_hash.into(), &contract);
 
         true
-    }
-}
-
-impl Main {
-    pub(crate) fn calculate_safety_level(&self, _contract: &Option<Contract>) -> SafetyReport {
-        SafetyReport::low()
-        // TODO
-        /*
-        if contract.is_none() {
-
-        }
-        let contract = contract.as_ref().unwrap();
-        if contract.council_approved.is_some() {
-            return SafetyReport::high();
-        }
-        if contract.audits.len() == 0 {
-            return SafetyReport::low();
-        }
-        SafetyReport::moderate()
-        */
     }
 }
