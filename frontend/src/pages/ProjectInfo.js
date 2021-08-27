@@ -52,7 +52,7 @@ function ProjectInfoPage (props) {
           </div>
           <div className='p-2 bd-highlight' />
           <div className='p-2 bd-highlight'>
-            <h5 className='gray'>{project.project_name}</h5>
+            <h5 className='gray'>{project.name}</h5>
           </div>
         </div>
         <div className='mb-3 py-2'>

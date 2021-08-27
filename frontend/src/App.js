@@ -22,7 +22,7 @@ const TestNearConfig = {
   accountSuffix: 'testnet',
   networkId: 'testnet',
   nodeUrl: 'https://rpc.testnet.near.org',
-  contractName: 'dev-1618917933127-5935675',
+  contractName: 'dev-1620999790595-5106147',
   walletUrl: 'https://wallet.testnet.near.org'
 }
 const MainNearConfig = {
@@ -71,24 +71,21 @@ class App extends React.Component {
     this._near.account = this._near.walletConnection.account()
     this._near.contract = new nearAPI.Contract(this._near.account, NearConfig.contractName, {
       viewMethods: [
-        'get_project',
-        'get_contract',
-        'get_contract_safety_report',
-        'get_certificate',
-        'get_all_projects',
-        'get_project_last_version',
-        'get_contract_source_code',
         'get_user',
-        'get_auditor_certificates',
-        'get_all_certificates'
+        'get_project',
+        'get_all_projects',
+        'get_project_last_contract',
+        'get_contract',
+        'get_contract_source_code',
+        'get_audit'
       ],
       changeMethods: [
         'create_user',
         'register_project',
         'register_contract',
-        'register_auditor',
-        'sign_audit',
-        'submit_audit_feedback'
+        'register_council',
+        'submit_audit',
+        'certify_contract'
       ]
     })
 
@@ -169,10 +166,10 @@ class App extends React.Component {
                     <Link className='nav-link' aria-current='page' to='/projects'>Projects</Link>
                   </li>
                   <li className='nav-item'>
-                    <Link className='nav-link' aria-current='page' to='/certificates'>Certificates</Link>
+                    <Link className='nav-link' aria-current='page' to='/cli'>CLI</Link>
                   </li>
                   <li className='nav-item'>
-                    <Link className='nav-link' aria-current='page' to='/cli'>CLI</Link>
+                    <Link className='nav-link' aria-current='page' to='/cli'>New project</Link>
                   </li>
                 </ul>
                 <form className='d-flex'>
@@ -192,12 +189,6 @@ class App extends React.Component {
             </Route>
             <Route exact path='/projects/:page'>
               <ProjectsPage {...passProps} />
-            </Route>
-            <Route exact path='/certificates'>
-              <CertificatesPage {...passProps} />
-            </Route>
-            <Route exact path='/certificates/:page'>
-              <CertificatesPage {...passProps} />
             </Route>
             <Route exact path='/cli'>
               <CLIPage {...passProps} />

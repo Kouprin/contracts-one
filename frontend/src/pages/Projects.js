@@ -4,8 +4,7 @@ import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 
 import { ProjectCard } from '../components/ProjectCard'
-import { ContractLink, ProfileLink, ProjectLink } from '../components/Links'
-import { loader, getBgByStatus, mapProjectViewLimited } from '../components/Helpers'
+import { loader } from '../components/Helpers'
 
 const FetchLimit = 25
 

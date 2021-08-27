@@ -15,21 +15,15 @@ function loader () {
   )
 }
 
-function getBgByStatus (status) {
-  if (status === 'Audited') return 'bg-success'
-  return 'bg-danger'
-}
-
-const mapProjectViewLimited = (c) => {
+const mapProjectView = (c) => {
   return c ? {
-    auditStatus: c.audit_status,
-    description: c.description,
     id: c.project_id,
-    lastVersion: c.last_version,
-    lastVersionContractHash: c.last_version_contract_hash,
     name: c.project_name,
-    publisher: c.publisher,
-    numContracts: c.num_contracts
+    description: c.description,
+    url: c.url,
+    owners: c.owners,
+    contracts: c.contracts,
+    lastVersion: c.last_version
   } : null
 }
 
@@ -47,14 +41,34 @@ const mapCertificateView = (c) => {
   } : null
 }
 
-// TODO
 const mapContract = (c) => {
-  return c || null
+  return c ? {
+    audits: c.audits,
+    certificates: c.certificates,
+    commitHash: c.commit_hash,
+    contractName: c.contract_name,
+    hash: c.hash,
+    projectName: c.project_name,
+    publishedTime: c.published_time,
+    publisher: c.publisher,
+    safetyLevel: c.safety_report.safety_level,
+    safetyIssues: c.safety_report.safety_issues,
+    sourceCodeSize: c.source_code_size,
+    standardsDeclared: c.standards_declared,
+    version: c.version
+  } : null
 }
 
-// TODO
 const mapProject = (c) => {
-  return c || null
+  return c ? {
+    id: c.project_id,
+    name: c.project_name,
+    url: c.url,
+    contracts: c.contracts,
+    description: c.description,
+    lastVersion: c.last_version,
+    owners: c.owners
+  } : null
 }
 
-export { NEAR, fromNear, loader, getBgByStatus, mapContract, mapProject, mapProjectViewLimited, mapCertificateView }
+export { NEAR, fromNear, loader, mapContract, mapProject, mapProjectView, mapCertificateView }
